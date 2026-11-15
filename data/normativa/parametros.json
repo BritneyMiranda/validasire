@@ -1,0 +1,33 @@
+{
+  "actualizado_al": "2026-11-15",
+  "revisado_por": "Britney Miranda (founder), con apoyo de Claude Code",
+  "tasas": {
+    "2026": {
+      "general": {"igv": 0.155, "ipm": 0.025},
+      "restaurante_mype": {"igv": 0.08, "ipm": 0.025}
+    },
+    "2027": {
+      "general": {"igv": 0.15, "ipm": 0.03},
+      "restaurante_mype": {"igv": 0.12, "ipm": 0.03}
+    }
+  },
+  "uit": {"2026": 5500.0, "2027": 5500.0},
+  "rmt_tope_pago_1pct_uit": 300,
+  "rmt_tope_regimen_uit": 1700,
+  "rer_cuota_ingresos": 0.015,
+  "tope_tasa_especial_uit": 1700,
+  "minimo_ingresos_rubro": 0.70,
+  "vinculacion_max_capital": 0.30,
+  "tolerancia_soles": 0.05,
+  "fuentes": [
+    {"norma": "Ley 32387 (jun. 2025)", "tema": "El IPM sube 0,5 pp por año desde 2026 (2026: 2,5 %; 2027: 3 %; 2029: 4 %) y el IGV baja igual: la tasa general sigue en 18 %."},
+    {"norma": "Ley 31556, modificada por la Ley 32219 (dic. 2024)", "tema": "Tasa especial de IGV para MYPE de restaurantes y hoteles: 8 % hasta el 31/12/2026 y 12 % en 2027. Ingresos de hasta 1,700 UIT y actividad principal del rubro."},
+    {"norma": "Ley 32542 (dic. 2025)", "tema": "Prorroga hasta el 31/12/2028 las exoneraciones del Apéndice I (productos frescos, entre otros)."},
+    {"norma": "RS 000047-2026/SUNAT", "tema": "Desde julio de 2026 el IGV retenido en liquidaciones de compra se paga vinculado a cada liquidación (FV 617)."},
+    {"norma": "UIT 2026", "tema": "S/ 5,500. La UIT 2027 aún no está en este archivo: se usa 5,500 como provisional."}
+  ],
+  "pendientes": [
+    "La tasa especial de 2027 (12 % + 3 % IPM) puede cambiar si el Congreso aprueba otra prórroga del 8 %.",
+    "UIT 2027 por publicar (decreto supremo de diciembre)."
+  ]
+}

@@ -10,7 +10,7 @@ from dataclasses import asdict, dataclass
 
 import pandas as pd
 
-from .parametros import TOLERANCIA_SOLES, tasa, tasa_pago_a_cuenta_rmt
+from .parametros import TOLERANCIA_SOLES, tasa, tasa_pago_a_cuenta
 
 # ---------------------------------------------------------------- normalización
 
@@ -194,7 +194,8 @@ class Resumen:
 
 
 def calcular(conciliacion: pd.DataFrame, base_ventas: float, anio: int, periodo: str,
-             regimen_ventas: str = "restaurante_mype", ingresos_anuales: float | None = None) -> Resumen:
+             regimen_ventas: str = "restaurante_mype", ingresos_anuales: float | None = None,
+             regimen_renta: str = "RMT") -> Resumen:
     t = tasa(anio, regimen_ventas).total
     debito = round(base_ventas * t, 2)
     cred_prop = round(float(conciliacion["credito_propuesta"].sum()), 2)
@@ -206,7 +207,7 @@ def calcular(conciliacion: pd.DataFrame, base_ventas: float, anio: int, periodo:
     indebido = float(conciliacion.loc[est.isin(["SOBRA_EN_PROPUESTA", "DUPLICADO_EN_PROPUESTA"]), "credito_propuesta"].sum())
     boletas = float(conciliacion.loc[est == "SIN_CREDITO", "igv_comprobante"].sum())
     ingresos = ingresos_anuales if ingresos_anuales is not None else base_ventas * 12
-    tpac = tasa_pago_a_cuenta_rmt(ingresos, anio)
+    tpac = tasa_pago_a_cuenta(ingresos, anio, regimen_renta)
     return Resumen(
         periodo=periodo,
         tasa_ventas=t,

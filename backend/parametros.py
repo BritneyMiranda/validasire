@@ -1,21 +1,22 @@
-"""Parámetros tributarios. NUNCA se los pedimos al LLM: viven aquí, con su fuente.
+"""Parámetros tributarios. NUNCA se los pedimos al LLM.
 
-Las tasas cambian por ley (y hay una reforma tributaria en discusión), así que todo cálculo
-lee de este archivo. Si cambia la norma, se cambia una línea y los tests lo cuidan.
-
-Fuentes (revisadas el 15/11/2026; verificar antes de usar en producción):
-- Ley 32387 (jun. 2025): el IPM sube 0,5 pp por año desde 2026 (2026: 2,5 %; 2027: 3 %;
-  2028: 3,5 %; 2029: 4 %) y el IGV baja en la misma medida, de modo que la tasa general
-  sigue en 18 %.
-- Ley 31556, modificada por la Ley 32219 (dic. 2024): tasa especial de IGV para MYPE de
-  restaurantes, hoteles y alojamientos turísticos: 8 % hasta el 31/12/2026 y 12 % en 2027.
-  Requisitos: ingresos anuales de hasta 1,700 UIT y que la actividad del rubro sea la
-  principal (según la norma, al menos 70 % de los ingresos).
-- UIT 2026: S/ 5,500.
+Viven en data/normativa/parametros.json, con la fecha de la última revisión y sus fuentes.
+Cuando cambia una norma:
+1. scripts/monitor_normativa.py (corre cada semana en GitHub Actions) detecta normas nuevas de
+   SUNAT relacionadas con IGV, SIRE, comprobantes, etc. y abre un issue para revisarlas.
+2. Una persona lee la norma y, si corresponde, edita el JSON (tasas, UIT, fecha) en un PR.
+3. Los tests deben pasar antes de desplegar.
+Así la app se entera sola de los cambios, pero no cambia un cálculo sin que alguien lo revise.
 """
 from __future__ import annotations
 
+import json
 from dataclasses import dataclass
+from datetime import date
+from pathlib import Path
+
+RUTA = Path(__file__).resolve().parents[1] / "data" / "normativa" / "parametros.json"
+_P = json.loads(RUTA.read_text(encoding="utf-8"))
 
 
 @dataclass(frozen=True)
@@ -30,28 +31,36 @@ class Tasa:
 
 # año -> régimen de la venta -> tasa
 TASAS: dict[int, dict[str, Tasa]] = {
-    2026: {"general": Tasa(igv=0.155, ipm=0.025), "restaurante_mype": Tasa(igv=0.08, ipm=0.025)},
-    2027: {"general": Tasa(igv=0.15, ipm=0.03), "restaurante_mype": Tasa(igv=0.12, ipm=0.03)},
+    int(anio): {reg: Tasa(**v) for reg, v in regs.items()} for anio, regs in _P["tasas"].items()
 }
+UIT: dict[int, float] = {int(k): float(v) for k, v in _P["uit"].items()}
 
-UIT: dict[int, float] = {2026: 5500.0, 2027: 5500.0}  # 2027: placeholder hasta que se publique
+ACTUALIZADO_AL: date = date.fromisoformat(_P["actualizado_al"])
+FUENTES: list[dict] = _P["fuentes"]
+PENDIENTES: list[str] = _P.get("pendientes", [])
 
-# Régimen MYPE Tributario: pago a cuenta de renta de 1 % si los ingresos netos del año no
-# superan 300 UIT; si los superan, se usa coeficiente o 1,5 % (simplificado aquí a 1,5 %).
-RMT_TOPE_PAGO_1PCT_UIT = 300
-RMT_TOPE_REGIMEN_UIT = 1700
-TOPE_TASA_ESPECIAL_UIT = 1700
-MINIMO_INGRESOS_RUBRO = 0.70
-VINCULACION_MAX_CAPITAL = 0.30
-
-TOLERANCIA_SOLES = 0.05  # diferencia máxima para considerar iguales dos montos
+RMT_TOPE_PAGO_1PCT_UIT = _P["rmt_tope_pago_1pct_uit"]
+RMT_TOPE_REGIMEN_UIT = _P["rmt_tope_regimen_uit"]
+RER_CUOTA = _P["rer_cuota_ingresos"]
+TOPE_TASA_ESPECIAL_UIT = _P["tope_tasa_especial_uit"]
+MINIMO_INGRESOS_RUBRO = _P["minimo_ingresos_rubro"]
+VINCULACION_MAX_CAPITAL = _P["vinculacion_max_capital"]
+TOLERANCIA_SOLES = _P["tolerancia_soles"]
 
 
 def tasa(anio: int, regimen: str) -> Tasa:
     if anio not in TASAS:
-        raise ValueError(f"No hay tasas cargadas para {anio}. Agrega el año en backend/parametros.py")
+        raise ValueError(f"No hay tasas cargadas para {anio}. Agrégalas en data/normativa/parametros.json")
     return TASAS[anio][regimen]
 
 
-def tasa_pago_a_cuenta_rmt(ingresos_anuales: float, anio: int) -> float:
+def tasa_pago_a_cuenta(ingresos_anuales: float, anio: int, regimen_renta: str = "RMT") -> float:
+    """RMT: 1 % si los ingresos del año no superan 300 UIT (si los superan, coeficiente o 1,5 %;
+    aquí simplificado a 1,5 %). RER: cuota de 1,5 % de los ingresos."""
+    if regimen_renta == "RER":
+        return RER_CUOTA
     return 0.01 if ingresos_anuales <= RMT_TOPE_PAGO_1PCT_UIT * UIT[anio] else 0.015
+
+
+def dias_desde_revision(hoy: date | None = None) -> int:
+    return ((hoy or date.today()) - ACTUALIZADO_AL).days

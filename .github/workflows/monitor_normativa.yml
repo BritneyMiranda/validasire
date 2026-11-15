@@ -1,0 +1,33 @@
+name: Monitor de normativa SUNAT
+
+on:
+  schedule:
+    - cron: "0 13 * * 1"   # lunes 8:00 a. m. hora de Lima
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  issues: write
+
+jobs:
+  monitor:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Buscar normas nuevas
+        run: python scripts/monitor_normativa.py --guardar --reporte reporte_normativa.md
+      - name: Abrir issue si hay novedades
+        if: hashFiles('reporte_normativa.md') != ''
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh issue create --title "Normas de SUNAT por revisar ($(date +%d/%m/%Y))" --body-file reporte_normativa.md --label normativa || gh issue create --title "Normas de SUNAT por revisar ($(date +%d/%m/%Y))" --body-file reporte_normativa.md
+      - name: Guardar normas vistas
+        run: |
+          git config user.name "cuadra-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add data/normativa/normas_vistas.json
+          git diff --cached --quiet || git commit -m "Monitor de normativa: actualiza normas vistas"
+          git push
