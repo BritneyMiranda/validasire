@@ -1,16 +1,16 @@
 id,fecha,tipo_comprobante,serie_numero,ruc_proveedor,proveedor,rubro,descripcion,base,igv,total,ruc_cliente_en_comprobante,categoria_esperada,credito_fiscal_esperado,nota
-C01,2026-10-02,Factura,F001-004512,20999991011,PESQUERA COSTA AZUL SAC,insumos,Pescado y mariscos frescos,3800.0,684.0,4484.0,20999990017,insumos,SI,
-C02,2026-10-05,Factura,F002-001873,20999991022,DISTRIBUIDORA ANDINA DE ABARROTES SAC,insumos,"Arroz, aceite, aji amarillo, sal",1650.0,297.0,1947.0,20999990017,insumos,SI,
-C03,2026-10-07,Factura,E001-000391,20999991033,AGRICOLA LOS VALLES SAC,insumos,"Limon, cebolla roja, camote, culantro",1120.0,201.6,1321.6,20999990017,insumos,SI,
+C01,2026-10-02,Factura,F001-004512,20999991011,PESQUERA COSTA AZUL SAC,insumos,"Pulpo cocido, langostinos y calamar congelado",3800.0,684.0,4484.0,20999990017,insumos,SI,
+C02,2026-10-05,Factura,F002-001873,20999991022,DISTRIBUIDORA ANDINA DE ABARROTES SAC,insumos,"Aceite, sillao, vinagre y aji amarillo en pasta",1650.0,297.0,1947.0,20999990017,insumos,SI,
+C03,2026-10-07,Factura,E001-000391,20999991033,AGRICOLA LOS VALLES SAC,insumos,"Pastas de aji amarillo y rocoto, salsas envasadas",1120.0,201.6,1321.6,20999990017,insumos,SI,
 C04,2026-10-08,Factura,F001-012204,20999991044,DISTRIBUIDORA DE BEBIDAS DEL SUR SAC,bebidas,Cerveza y gaseosas,2400.0,432.0,2832.0,20999990017,bebidas,SI,
 C05,2026-10-10,Factura,F003-000987,20999991055,GASOCENTRO LIMA NORTE SAC,servicios,Balones de GLP,520.0,93.6,613.6,20999990017,servicios_operativos,SI,
 C06,2026-10-12,Factura,F001-000231,20999991066,EMPAQUES Y DESCARTABLES PERU SAC,delivery,Envases y bolsas para delivery,610.0,109.8,719.8,20999990017,empaques,SI,
-C07,2026-10-14,Factura,0001-004689,20999991011,PESQUERA COSTA AZUL SAC,insumos,"Pescado, conchas negras, pulpo",4100.0,738.0,4838.0,20999990017,insumos,SI,Factura fisica emitida en contingencia (caida del sistema del proveedor). SUNAT no la tenia al generar la propuesta: hay que agregarla al RCE. Compra real del restaurante.
+C07,2026-10-14,Factura,0001-004689,20999991011,PESQUERA COSTA AZUL SAC,insumos,Pulpo cocido y calamar precocido,4100.0,738.0,4838.0,20999990017,insumos,SI,Factura fisica emitida en contingencia (caida del sistema del proveedor). SUNAT no la tenia al generar la propuesta: hay que agregarla al RCE. Compra real del restaurante.
 C08,2026-10-15,Factura,F004-002215,20999991077,INMOBILIARIA SAN ISIDRO SAC,alquiler,"Alquiler de local, octubre 2026",3500.0,630.0,4130.0,20999990017,alquiler,SI,
 C09,2026-10-16,Factura,F001-007744,20999991088,LUZ DEL PACIFICO SA,servicios,"Energia electrica, octubre 2026",780.0,140.4,920.4,20999990017,servicios_publicos,SI,
 C10,2026-10-18,Factura,F001-003310,20999991099,TELECOM ANDES SAC,servicios,Internet y telefonia,160.0,28.8,188.8,20999990017,servicios_publicos,SI,
 C11,2026-10-20,Factura,F005-001402,20999991100,PLATAFORMA DELIVERY PERU SAC,delivery,Comision por pedidos de delivery,950.0,171.0,1121.0,20999990017,comisiones,SI,
 C12,2026-10-22,Factura,F001-000876,20999991111,LIMPIEZA Y FUMIGACION ALFA SAC,servicios,Fumigacion del local,300.0,54.0,354.0,20999990017,servicios_operativos,SI,
-C13,2026-10-25,Factura,F001-009120,20999991122,CARNES Y AVES SAN MARTIN SAC,insumos,"Pollo, lomo, chancho",2250.0,405.0,2655.0,20999990017,insumos,SI,
-C14,2026-10-04,Boleta,B001-008841,10999991133,PUESTO 214 MERCADO MAYORISTA (persona natural),insumos,Verduras y hierbas (compra en mercado),1000.0,180.0,1180.0,,insumos,NO,Boleta sin RUC del cliente: no da derecho a credito fiscal. IGV incluido solo como referencia (lo que se habria recuperado con factura).
+C13,2026-10-25,Factura,F001-009120,20999991122,CARNES Y AVES SAN MARTIN SAC,insumos,"Pollo beneficiado, lomo fino y chancho",2250.0,405.0,2655.0,20999990017,insumos,SI,
+C14,2026-10-04,Boleta,B001-008841,10999991133,PUESTO 214 MERCADO MAYORISTA (persona natural),insumos,"Especias, sillao y vinagre envasados (puesto de abarrotes)",1000.0,180.0,1180.0,,insumos,NO,Boleta sin RUC del cliente: no da derecho a credito fiscal. IGV incluido solo como referencia (lo que se habria recuperado con factura).
 C15,2026-10-19,Boleta,B002-003377,10999991144,FERRETERIA EL TORNILLO,mantenimiento,Reparacion de campana extractora,200.0,36.0,236.0,,mantenimiento,NO,Boleta sin RUC del cliente: no da derecho a credito fiscal. IGV incluido solo como referencia (lo que se habria recuperado con factura).
