@@ -14,5 +14,9 @@ venv/
 .DS_Store
 Thumbs.db
 
+# material personal de la founder
+docs/pitch.md
+guion*.md
+
 # datos reales de clientes: nunca al repo
 data/privado/

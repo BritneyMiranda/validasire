@@ -181,7 +181,7 @@ Usé **Claude Code** como co-founder técnico. Lo que hizo:
 - **Mejoró el caso sintético:** detectó que, en la primera versión, la factura faltante tenía el RUC del cliente mal digitado, lo que en la práctica **no** da crédito en el mes (hay que anularla y reemitirla). La cambió por una factura física de contingencia y movió el caso del RUC errado a una alerta propia. También regeneró las imágenes porque las razones sociales largas se montaban sobre el recuadro de la serie.
 - **Investigó y verificó parámetros:** tasas 2026-2027 (Leyes 31556, 32219 y 32387), Apéndice I prorrogado a 2028 (Ley 32542) y cambios de 2026 en la liquidación de compra (RS 000047-2026/SUNAT). Quedaron en `data/normativa/parametros.json` con su fuente. Al verificar el Apéndice I detectó que el caso cobraba IGV por limón y verduras (exonerados) y cambió esas descripciones por productos gravados.
 - **Construyó el diagnóstico y el monitor de normativa** a partir de mis notas de entrevistas: requisitos del crédito fiscal, talonarios, liquidación de compra, exportación a Excel y el scraping del índice de SUNAT.
-- **Redactó** este README, la guía de entrevistas y el guion del pitch.
+- **Redactó** este README y la guía de entrevistas.
 
 Lo que hice yo: elegir el problema y el usuario, acotar el alcance a un solo flujo, decidir que el LLM no calcula impuestos, realizar las entrevistas, revisar el código y las cifras, y desplegar.
 
@@ -194,7 +194,8 @@ app/            Streamlit (la interfaz)
 backend/        OCR, extracción, conciliación, cálculo y reportes
 ai/prompts/     prompt de extracción
 data/           caso sintético (ficticio): comprobantes, propuesta, ventas, resultados esperados
-docs/           capturas, evaluación, research/ (3 conversaciones) y guion del pitch
+docs/           capturas, arquitectura, evaluación y research/ (3 conversaciones)
+data/normativa/ tasas y parámetros tributarios con fecha de revisión
 scripts/        generación de comprobantes, evaluación y capturas
 tests/          pytest
 ```
