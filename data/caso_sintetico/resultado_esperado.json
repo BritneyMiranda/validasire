@@ -1,0 +1,21 @@
+{
+  "periodo": "2026-10",
+  "regimen_supuesto": "RMT (Regimen MYPE Tributario)",
+  "tasa_ventas_total": 0.105,
+  "tasa_compras_total": 0.18,
+  "base_ventas": 52000.0,
+  "igv_debito_ventas": 5460.0,
+  "credito_fiscal_correcto": 3985.2,
+  "igv_a_pagar_correcto": 1474.8,
+  "credito_fiscal_segun_propuesta": 3625.2,
+  "igv_a_pagar_si_acepta_propuesta": 1834.8,
+  "diferencia_pago_de_mas": 360.0,
+  "pago_a_cuenta_renta_1pct": 520.0,
+  "igv_referencial_perdido_por_boletas": 216.0,
+  "supuestos": [
+    "Todo es ficticio (RUC, razones sociales, montos).",
+    "Tasa de ventas 10,5% = 8% IGV + 2,5% IPM (restaurantes MYPE, 2026).",
+    "Tasa de compras 18% = 16% IGV + 2% IPM.",
+    "Pago a cuenta 1% aplica en RMT si los ingresos anuales no pasan de 300 UIT: verificar."
+  ]
+}

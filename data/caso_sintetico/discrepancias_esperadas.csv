@@ -1,0 +1,5 @@
+id,tipo,serie_numero,proveedor,monto_igv,efecto,causa_plantada
+D1,FALTA_EN_PROPUESTA,0001-004689,PESQUERA COSTA AZUL SAC,738.0,Se pierde credito fiscal si se acepta sin revisar,Factura fisica de contingencia que SUNAT no tenia al generar la propuesta
+D2,SOBRA_EN_PROPUESTA,F001-000458,ELECTRO HOGAR PERU SAC,378.0,Credito fiscal indebido y riesgo en fiscalizacion,"Compra de un televisor: gasto personal del dueno, sin relacion con el negocio (no esta en los registros del restaurante)"
+A1,ALERTA_SIN_CREDITO,B001-008841,PUESTO 214 MERCADO MAYORISTA,180.0,Compra con boleta: no hay credito. Con factura se habria recuperado ese IGV,Proveedor informal o sin factura
+A2,ALERTA_SIN_CREDITO,B002-003377,FERRETERIA EL TORNILLO,36.0,Compra con boleta sin RUC del cliente: no hay credito,No se pidio factura

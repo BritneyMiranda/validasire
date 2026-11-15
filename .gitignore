@@ -1,0 +1,18 @@
+# secretos
+.env
+.streamlit/secrets.toml
+
+# python
+__pycache__/
+*.pyc
+.venv/
+venv/
+.pytest_cache/
+.ipynb_checkpoints/
+
+# sistema
+.DS_Store
+Thumbs.db
+
+# datos reales de clientes: nunca al repo
+data/privado/
