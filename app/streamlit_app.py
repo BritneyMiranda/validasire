@@ -22,10 +22,22 @@ from backend.conciliacion import (  # noqa: E402
 )
 from backend.extraccion import cliente_claude, extraer, modelo_claude  # noqa: E402
 from backend.ocr import leer  # noqa: E402
+from backend.diagnostico import LIQUIDACION, REQUISITOS_CREDITO, TALONARIOS, a_excel, diagnosticar  # noqa: E402
 from backend.parametros import (  # noqa: E402
-    MINIMO_INGRESOS_RUBRO, TASAS, TOPE_TASA_ESPECIAL_UIT, UIT, VINCULACION_MAX_CAPITAL, tasa,
+    ACTUALIZADO_AL, FUENTES, MINIMO_INGRESOS_RUBRO, PENDIENTES, TASAS, TOPE_TASA_ESPECIAL_UIT, UIT,
+    VINCULACION_MAX_CAPITAL, dias_desde_revision, tasa,
 )
 from backend.reporte import mensaje_dueno, reporte_contador  # noqa: E402
+
+import io  # noqa: E402
+
+SIN_COMPROBANTE_CASO = pd.DataFrame([
+    {"descripcion": "Pescado fresco del terminal pesquero", "monto": 6500.0},
+    {"descripcion": "Limón, cebolla y culantro del mercado", "monto": 2800.0},
+    {"descripcion": "Hielo en bloque", "monto": 450.0},
+    {"descripcion": "Bolsas y táperes del mercado", "monto": 300.0},
+])
+SIN_COMPROBANTE_VACIO = pd.DataFrame([{"descripcion": "", "monto": 0.0}])
 
 st.set_page_config(page_title="Cuadra · IGV sin sorpresas", page_icon=":material/receipt_long:", layout="wide")
 
@@ -78,9 +90,12 @@ ss.setdefault("extracciones", [])   # lista de dicts
 ss.setdefault("propuesta_df", None)
 ss.setdefault("ventas_base", None)
 ss.setdefault("es_caso", False)
+ss.setdefault("sin_comprobante", SIN_COMPROBANTE_VACIO)
 
 
 def cargar_caso(rapido: bool) -> None:
+    ss.sin_comprobante = SIN_COMPROBANTE_CASO
+    ss.pop("editor_sin_comprobante", None)
     ss.imagenes = {p.name: p.read_bytes() for p in caso.archivos_demo()}
     ss.propuesta_df = pd.read_csv(caso.DIR / "propuesta_rce.csv", dtype=str)
     ss.ventas_base = caso.base_ventas()
@@ -101,7 +116,24 @@ with st.sidebar:
         if r == "restaurante_mype" else f"General {tasa(anio, 'general').total:.0%}",
     )
     st.caption(f"{anio}: IGV {tasa(anio, regimen).igv:.1%} + IPM {tasa(anio, regimen).ipm:.1%}. "
-               "Las tasas viven en `backend/parametros.py`, no en el LLM.")
+               "Las tasas viven en `data/normativa/parametros.json`, no en el LLM.")
+    regimen_renta = st.segmented_control("Régimen de renta", ["RMT", "RER"], default="RMT", required=True,
+                                         help="RMT: Régimen MYPE Tributario. RER: Régimen Especial de Renta.")
+
+    st.divider()
+    st.subheader(":material/gavel: Normativa")
+    dias = dias_desde_revision()
+    st.caption(f"Información tributaria actualizada al **{ACTUALIZADO_AL:%d/%m/%Y}**.")
+    if dias > 45:
+        st.warning(f"Han pasado {dias} días desde la última revisión de normas: verifica las tasas antes de declarar.",
+                   icon=":material/schedule:")
+    with st.popover("Fuentes y pendientes", icon=":material/menu_book:", width="stretch"):
+        for f in FUENTES:
+            st.markdown(f"- **{f['norma']}**: {f['tema']}")
+        if PENDIENTES:
+            st.markdown("**Por confirmar:**\n" + "\n".join(f"- {p}" for p in PENDIENTES))
+        st.caption("Cada lunes un monitor revisa las nuevas resoluciones de SUNAT y abre un aviso para revisarlas "
+                   "(`scripts/monitor_normativa.py`). Ningún cambio de tasa se aplica sin revisión humana.")
 
     st.divider()
     st.subheader(":material/smart_toy: Lectura")
@@ -120,7 +152,9 @@ periodo = f"{anio}-{MESES.index(mes) + 1:02d}"
 # ---------------------------------------------------------------- encabezado
 st.title(":material/receipt_long: Cuadra")
 st.markdown("**Revisa tu IGV del mes en 5 minutos, antes de aceptar la propuesta del SIRE.** "
-            "Sube las fotos de tus facturas de compra y la propuesta del RCE; Cuadra te dice qué falta, qué sobra y cuánto pagar.")
+            "Sube las fotos de tus facturas de compra y la propuesta del RCE; Cuadra te dice qué falta, qué sobra, cuánto pagar "
+            "y dónde puedes ahorrar.")
+st.caption(f":material/verified: Con información tributaria actualizada al {ACTUALIZADO_AL:%d/%m/%Y}.")
 
 if st.query_params.get("demo") == "1" and not ss.extracciones and not ss.es_caso:
     cargar_caso(rapido=True)
@@ -159,7 +193,7 @@ with st.container(border=True):
             filas.append({
                 "incluir": True, "archivo": e["archivo"], **{k: c[k] for k in (
                     "tipo_comprobante", "serie_numero", "fecha_emision", "ruc_emisor", "razon_social_emisor",
-                    "ruc_cliente", "base_gravada", "igv", "total")},
+                    "ruc_cliente", "descripcion", "base_gravada", "igv", "total")},
                 "contingencia": c.get("contingencia", False),
                 "confianza": e["confianza_ocr"],
                 "revisar": "; ".join(e["observaciones"] + [f"Claude y reglas difieren en {', '.join(e['discrepancias_motores'])}"]
@@ -178,7 +212,7 @@ with st.container(border=True):
                 "archivo": st.column_config.TextColumn("Archivo", width="small"),
                 "tipo_comprobante": st.column_config.SelectboxColumn("Tipo", options=["Factura", "Boleta", "Nota de credito", "Otro"]),
                 "serie_numero": "Serie-número", "fecha_emision": "Fecha", "ruc_emisor": "RUC proveedor",
-                "razon_social_emisor": "Proveedor", "ruc_cliente": "RUC cliente",
+                "razon_social_emisor": "Proveedor", "ruc_cliente": "RUC cliente", "descripcion": "Descripción",
                 "base_gravada": st.column_config.NumberColumn("Base", format="%.2f"),
                 "igv": st.column_config.NumberColumn("IGV", format="%.2f"),
                 "total": st.column_config.NumberColumn("Total", format="%.2f"),
@@ -236,7 +270,7 @@ with st.container(border=True):
         validados = set(st.pills("¿Alguna compra de la propuesta que no subiste sí es del negocio? Márcala:",
                                  list(etiquetas), format_func=etiquetas.get, selection_mode="multi"))
     con = conciliar(compras, prop, ruc_propio, validados_por_usuario=validados)
-    res = calcular(con, base_ventas, anio, periodo, regimen)
+    res = calcular(con, base_ventas, anio, periodo, regimen, regimen_renta=regimen_renta)
 
     m1, m2, m3, m4 = st.columns(4)
     m1.metric("IGV a pagar si aceptas la propuesta", soles(res.igv_a_pagar_si_acepta_propuesta), border=True)
@@ -247,7 +281,8 @@ with st.container(border=True):
 
     hallazgos = con[con["estado"] != "OK"]
     st.markdown(f"**{len(hallazgos)} hallazgo(s)** · débito de ventas {soles(res.igv_debito_ventas)} "
-                f"({res.tasa_ventas:.1%}) · pago a cuenta de renta RMT {soles(res.pago_a_cuenta_renta)} "
+                f"({res.tasa_ventas:.1%}) · {'pago a cuenta de renta RMT' if regimen_renta == 'RMT' else 'cuota de renta RER'} "
+                f"{soles(res.pago_a_cuenta_renta)} "
                 f"({res.tasa_pago_a_cuenta:.1%})")
     ver_todo = st.toggle("Ver también los que coinciden", value=False)
     vista = (con if ver_todo else hallazgos).assign(estado=lambda d: d["estado"].map(ETIQUETA_ESTADO))
@@ -283,22 +318,78 @@ with st.container(border=True):
     with d3.popover("Mensaje para el dueño", icon=":material/chat:", width="stretch"):
         st.code(mensaje_dueno(res, con), language=None, wrap_lines=True)
 
-# ---------------------------------------------------------------- elegibilidad
-with st.expander("¿Te corresponde la tasa especial de restaurantes?", icon=":material/rule:"):
-    e1, e2, e3 = st.columns(3)
-    ingresos = e1.number_input("Ingresos del año anterior (S/)", min_value=0.0, value=624_000.0, step=10_000.0)
-    pct_rubro = e2.slider("% de ingresos por restaurante", 0, 100, 92) / 100
-    vinc = e3.toggle("¿Compartes más de 30 % del capital con otra empresa del rubro?", value=False)
-    tope = TOPE_TASA_ESPECIAL_UIT * UIT[anio]
-    checks = [
-        (ingresos <= tope, f"Ingresos de hasta {TOPE_TASA_ESPECIAL_UIT:,} UIT ({soles(tope)})"),
-        (pct_rubro >= MINIMO_INGRESOS_RUBRO, f"Al menos {MINIMO_INGRESOS_RUBRO:.0%} de ingresos del rubro"),
-        (not vinc, f"Sin vinculación económica (más de {VINCULACION_MAX_CAPITAL:.0%} del capital) que sume ingresos sobre el tope"),
-    ]
-    for ok, texto in checks:
-        st.markdown(f"{':material/check_circle:' if ok else ':material/cancel:'} {texto}")
-    st.caption("Referencial. SUNAT está enviando esquelas por vinculación económica: perder el beneficio implica "
-               f"reliquidar a 18 % con intereses y multa. En 2027 la tasa especial sube a {tasa(2027, 'restaurante_mype').total:.0%} "
-               "(12 % IGV + 3 % IPM), salvo que se apruebe otra prórroga.")
+# ---------------------------------------------------------------- paso 4: diagnóstico
+ICONO_TEMA = {"Dinero": ":material/savings:", "Riesgo": ":material/warning:", "Renta": ":material/account_balance:",
+              "Orden": ":material/folder_open:", "Futuro": ":material/event_upcoming:"}
+
+with st.container(border=True):
+    st.subheader("4 · Diagnóstico del negocio: dónde puedes ahorrar")
+    st.markdown("Además de lo que ya revisamos, ¿qué compras haces **sin comprobante** en un mes normal? "
+                "(mercado, terminal, hielo, carbón, bolsas…). Un estimado basta.")
+    sin_comp = st.data_editor(
+        ss.sin_comprobante, num_rows="dynamic", hide_index=True, key="editor_sin_comprobante",
+        column_config={"descripcion": st.column_config.TextColumn("Qué compras", width="large"),
+                       "monto": st.column_config.NumberColumn("Monto al mes (S/)", min_value=0, format="%.2f")},
+    )
+    recs_box = st.container()
+
+    c_req, c_tal, c_liq, c_tasa = st.tabs(["¿Qué compras me sirven?", "¿Mi talonario sirve?",
+                                            "Liquidación de compra", "Tasa especial"])
+    c_req.markdown(REQUISITOS_CREDITO)
+    c_tal.markdown(TALONARIOS)
+    c_liq.markdown(LIQUIDACION)
+    with c_tasa:
+        e1, e2, e3 = st.columns(3)
+        ingresos = e1.number_input("Ingresos del año anterior (S/)", min_value=0.0, value=round(base_ventas * 12, 2), step=10_000.0)
+        pct_rubro = e2.slider("% de ingresos por restaurante", 0, 100, 92) / 100
+        vinc = e3.toggle("¿Compartes más de 30 % del capital con otra empresa del rubro?", value=False)
+        tope = TOPE_TASA_ESPECIAL_UIT * UIT[anio]
+        checks = [
+            (ingresos <= tope, f"Ingresos de hasta {TOPE_TASA_ESPECIAL_UIT:,} UIT ({soles(tope)})"),
+            (pct_rubro >= MINIMO_INGRESOS_RUBRO, f"Al menos {MINIMO_INGRESOS_RUBRO:.0%} de ingresos del rubro"),
+            (not vinc, f"Sin vinculación económica (más de {VINCULACION_MAX_CAPITAL:.0%} del capital) que sume ingresos sobre el tope"),
+        ]
+        for ok, texto in checks:
+            st.markdown(f"{':material/check_circle:' if ok else ':material/cancel:'} {texto}")
+        if anio + 1 in TASAS:
+            st.caption("Referencial. SUNAT está enviando esquelas por vinculación económica: perder el beneficio implica "
+                       f"reliquidar a 18 % con intereses y multa. En {anio + 1} la tasa especial pasa a "
+                       f"{tasa(anio + 1, 'restaurante_mype').total:.0%}, salvo que se apruebe otra prórroga.")
+
+    confianza_min = min(e["confianza_ocr"] for e in ss.extracciones)
+    diag = diagnosticar(compras, sin_comp, con, res, anio, regimen_renta, confianza_min, vinc)
+
+    with recs_box:
+        k1, k2, k3, k4 = st.columns(4)
+        k1.metric("IGV recuperable al mes", soles(diag.igv_recuperable_mes), border=True,
+                  help="Compras gravadas que hoy haces con boleta o sin comprobante: monto × 18/118, si consigues el mismo precio total con factura.")
+        k2.metric("En un año", soles(diag.igv_recuperable_anio), border=True)
+        k3.metric("Compras con crédito fiscal", f"{diag.pct_compras_con_credito:.0%}", border=True,
+                  help="Parte de tus compras del mes (en soles) que tiene factura válida y está en el registro.")
+        k4.metric("Renta extra al mes (costos sin sustento)", soles(diag.impuesto_renta_estimado_mes), border=True,
+                  help="Solo RMT: costo sin comprobante × 10 % (primer tramo, estimado conservador). En el RER es 0.")
+
+        if not diag.lineas.empty:
+            st.markdown("**Dónde se te escapa más dinero**")
+            vista_d = diag.lineas.assign(
+                monto=lambda d: d["monto"].map(lambda v: f"{v:,.2f}"),
+                igv_recuperable=lambda d: d["igv_recuperable"].map(lambda v: f"{v:,.2f}"),
+            )[["descripcion", "origen", "tratamiento", "monto", "igv_recuperable", "que_hacer"]].rename(columns={
+                "descripcion": "Compra", "origen": "Cómo la compras", "tratamiento": "IGV",
+                "monto": "Monto (S/)", "igv_recuperable": "IGV recuperable (S/)", "que_hacer": "Qué hacer"})
+            st.table(vista_d, border="horizontal", hide_index=True, alt="Compras sin crédito fiscal y cuánto IGV se podría recuperar")
+
+        st.markdown("**Recomendaciones**")
+        for rec in diag.recomendaciones:
+            monto_txt = f" · **{soles(rec['monto'])} al mes**" if rec["monto"] else ""
+            with st.container(border=True):
+                st.markdown(f"{ICONO_TEMA.get(rec['tema'], ':material/lightbulb:')} **{rec['titulo']}**{monto_txt}")
+                st.caption(rec["detalle"])
+
+    buffer = io.BytesIO()
+    a_excel(buffer, compras, con, res, diag)
+    st.download_button("Descargar todo en Excel (para el contador)", buffer.getvalue(),
+                       file_name=f"cuadra_{periodo}.xlsx", icon=":material/table_view:", type="primary",
+                       mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
 
 st.caption("Datos de ejemplo 100 % ficticios. Cuadra es una herramienta de revisión, no reemplaza la asesoría de un contador.")

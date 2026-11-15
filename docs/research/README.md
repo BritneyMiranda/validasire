@@ -4,12 +4,12 @@ Tres conversaciones: dos dueños o administradores de restaurantes MYPE y un con
 
 **Anonimato:** no se escribe el nombre de la persona, el nombre del negocio ni su RUC. Se identifica como "Dueño 1 – cevichería, Surquillo" o "Contador – lleva ~25 MYPE". Se pide permiso para tomar notas y se avisa que serán públicas y anónimas.
 
-| Archivo | Con quién | Estado |
+| Archivo | Con quién | Fecha |
 |---|---|---|
-| [entrevista_1_dueno.md](entrevista_1_dueno.md) | Dueño/a o administrador/a de restaurante | pendiente |
-| [entrevista_2_dueno.md](entrevista_2_dueno.md) | Dueño/a o administrador/a de restaurante | pendiente |
-| [entrevista_3_contador.md](entrevista_3_contador.md) | Contador/a que lleva restaurantes MYPE | pendiente |
-| [sintesis.md](sintesis.md) | Lo que aprendimos y qué cambia en el producto | pendiente |
+| [entrevista_A_duena_cevicheria.md](entrevista_A_duena_cevicheria.md) | Dueña de cevichería (RMT) | 15/11/2026 |
+| [entrevista_B_dueno_polleria.md](entrevista_B_dueno_polleria.md) | Dueño de pollería familiar (RER) | 14/11/2026 |
+| [entrevista_C_contador_freelance.md](entrevista_C_contador_freelance.md) | Contador independiente con ~25 MYPE | 13/11/2026 |
+| [sintesis.md](sintesis.md) | Hipótesis, problemas con el SIRE y qué cambió en el producto | |
 
 ## Mensaje para pedir la conversación (WhatsApp)
 

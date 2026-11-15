@@ -42,6 +42,12 @@ def main() -> None:
         pag.mouse.wheel(0, 120)
         pag.wait_for_timeout(1500)
         pag.screenshot(path=OUT / "3_resultado.png")
+
+        # 4. Diagnóstico del negocio
+        pag.get_by_text("4 · Diagnóstico del negocio").scroll_into_view_if_needed()
+        pag.mouse.wheel(0, 330)
+        pag.wait_for_timeout(1500)
+        pag.screenshot(path=OUT / "4_diagnostico.png")
         nav.close()
     print("Capturas en", OUT)
 
