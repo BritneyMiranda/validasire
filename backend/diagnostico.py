@@ -314,11 +314,14 @@ _Fuentes: SUNAT, Orientación "Declaración y pago IGV/IPM por operaciones en qu
 """
 
 
-def a_excel(ruta_o_buffer, compras: pd.DataFrame, con: pd.DataFrame, res: Resumen, diag: Diagnostico | None) -> None:
+def a_excel(ruta_o_buffer, compras: pd.DataFrame, con: pd.DataFrame, res: Resumen, diag: Diagnostico | None,
+            ventas: pd.DataFrame | None = None) -> None:
     """Exporta todo a Excel (pedido del contador entrevistado: auditable y en su herramienta)."""
     with pd.ExcelWriter(ruta_o_buffer, engine="openpyxl") as xw:
         pd.DataFrame(list(res.a_dict().items()), columns=["concepto", "valor"]).to_excel(xw, sheet_name="Resumen", index=False)
-        con.drop(columns=["clave", "severidad"], errors="ignore").to_excel(xw, sheet_name="Conciliacion", index=False)
+        con.drop(columns=["clave", "severidad"], errors="ignore").to_excel(xw, sheet_name="Compras_RCE", index=False)
+        if ventas is not None:
+            ventas.to_excel(xw, sheet_name="Ventas_RVIE", index=False)
         compras.to_excel(xw, sheet_name="Compras_leidas", index=False)
         if diag is not None:
             diag.lineas.to_excel(xw, sheet_name="Diagnostico_lineas", index=False)

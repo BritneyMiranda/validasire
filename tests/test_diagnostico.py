@@ -64,7 +64,7 @@ def test_excel_tiene_todas_las_hojas():
     buf = io.BytesIO()
     a_excel(buf, compras, con, res, d)
     hojas = pd.ExcelFile(io.BytesIO(buf.getvalue())).sheet_names
-    assert {"Resumen", "Conciliacion", "Diagnostico_lineas", "Recomendaciones", "Formulas"} <= set(hojas)
+    assert {"Resumen", "Compras_RCE", "Diagnostico_lineas", "Recomendaciones", "Formulas"} <= set(hojas)
 
 
 def test_rer_no_suma_renta_por_costos():

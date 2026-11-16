@@ -10,7 +10,15 @@ def _s(x: float) -> str:
     return f"S/ {x:,.2f}"
 
 
-def reporte_contador(r: Resumen, con: pd.DataFrame, ruc: str) -> str:
+def reporte_contador(r: Resumen, con: pd.DataFrame, ruc: str, con_ventas: pd.DataFrame | None = None) -> str:
+    if con_ventas is None:
+        sec_ventas = "No se cargó la propuesta del RVIE: la base de ventas se tomó del resumen ingresado."
+    else:
+        hv = con_ventas[con_ventas["estado"] != "OK"]
+        sec_ventas = (f"{len(con_ventas)} comprobantes/resúmenes cruzados contra la propuesta del RVIE: "
+                      + ("todos coinciden." if hv.empty else f"{len(hv)} con diferencias:\n\n" + "\n".join(
+                          f"- {h.serie_numero} · {h.estado} · base registro {h.base_registro:,.2f} / propuesta {h.base_propuesta:,.2f}"
+                          for h in hv.itertuples())))
     hall = con[con["estado"] != "OK"]
     filas = "\n".join(
         f"| {h.estado} | {h.serie_numero} | {h.proveedor} | {h.igv_comprobante:,.2f} | {h.igv_propuesta:,.2f} | {h.que_hacer} |"
@@ -29,13 +37,17 @@ def reporte_contador(r: Resumen, con: pd.DataFrame, ruc: str) -> str:
 | Saldo a favor (revisado) | {r.saldo_a_favor_revisado:,.2f} |
 | Pago a cuenta de renta RMT ({r.tasa_pago_a_cuenta:.1%}) | {r.pago_a_cuenta_renta:,.2f} |
 
-## Hallazgos
+## Ventas (RVIE)
+
+{sec_ventas}
+
+## Compras (RCE): hallazgos
 
 | Estado | Serie-número | Proveedor | IGV comprobante | IGV propuesta | Acción |
 |---|---|---|---|---|---|
 {filas}
 
-Generado por Cuadra. Los cálculos son deterministas (backend/conciliacion.py); verifique antes de presentar.
+Generado por ValidaSire. Los cálculos son deterministas (backend/conciliacion.py); verifique antes de presentar.
 """
 
 

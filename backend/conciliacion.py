@@ -76,7 +76,9 @@ def cargar_propuesta(df: pd.DataFrame) -> pd.DataFrame:
 ACCION = {
     "OK": "Coincide con tu comprobante.",
     "FALTA_EN_PROPUESTA": "Agrégala al RCE antes de aceptar: SUNAT no la tiene y pierdes ese crédito.",
-    "SOBRA_EN_PROPUESTA": "No tienes este comprobante en tus compras. Si no es del negocio (p. ej. gasto personal), exclúyelo: usar ese crédito es indebido.",
+    "SOBRA_EN_PROPUESTA": "No subiste este comprobante. Si es una compra del negocio, sube su foto y la validamos; "
+                          "si no lo es (p. ej. un gasto personal), no la aceptes: descontar ese IGV es indebido.",
+    "ES_VENTA": "Esta factura la emitiste tú: es una venta, no una compra. Va en el RVIE (ventas), no en el RCE.",
     "DIFERENCIA_MONTO": "El IGV de la propuesta no coincide con tu comprobante: revisa si hay nota de crédito o error de digitación.",
     "DUPLICADO_EN_PROPUESTA": "Aparece dos veces en la propuesta: deja solo una.",
     "RUC_CLIENTE_ERRADO": "La factura está a nombre de otro RUC: no da crédito hasta que el proveedor la anule y emita una nueva.",
@@ -84,8 +86,11 @@ ACCION = {
 }
 SEVERIDAD = {
     "OK": 0, "SIN_CREDITO": 1, "DIFERENCIA_MONTO": 2, "DUPLICADO_EN_PROPUESTA": 2,
-    "RUC_CLIENTE_ERRADO": 2, "FALTA_EN_PROPUESTA": 3, "SOBRA_EN_PROPUESTA": 3,
+    "RUC_CLIENTE_ERRADO": 2, "ES_VENTA": 2, "FALTA_EN_PROPUESTA": 3, "SOBRA_EN_PROPUESTA": 3,
 }
+# Estados que significan que la propuesta del RCE no está lista para aceptarse tal cual.
+ESTADOS_ERROR = {"FALTA_EN_PROPUESTA", "SOBRA_EN_PROPUESTA", "DIFERENCIA_MONTO", "DUPLICADO_EN_PROPUESTA",
+                 "RUC_CLIENTE_ERRADO", "ES_VENTA"}
 
 
 def conciliar(compras: pd.DataFrame, propuesta: pd.DataFrame, ruc_propio: str,
@@ -114,9 +119,14 @@ def conciliar(compras: pd.DataFrame, propuesta: pd.DataFrame, ruc_propio: str,
             "serie_numero": c.get("serie_numero"),
             "ruc_proveedor": c.get("ruc_emisor"),
             "proveedor": c.get("razon_social_emisor"),
+            "descripcion": c.get("descripcion") or "",
             "clave": k,
         }
         igv_c = c.get("igv")
+        if str(c.get("ruc_emisor") or "").strip() == ruc_propio:
+            filas.append({**base, "estado": "ES_VENTA", "igv_comprobante": float(igv_c or 0), "igv_propuesta": 0.0,
+                          "credito_revisado": 0.0, "credito_propuesta": 0.0})
+            continue
         if c.get("tipo_comprobante") == "Boleta":
             total = float(c.get("total") or 0)
             igv_ref = float(igv_c) if pd.notna(igv_c) and igv_c else round(total * tasa_compras / (1 + tasa_compras), 2)
@@ -144,7 +154,7 @@ def conciliar(compras: pd.DataFrame, propuesta: pd.DataFrame, ruc_propio: str,
     for i, p in prop.iterrows():
         k = p["_clave"]
         base = {"serie_numero": p["serie_numero"], "ruc_proveedor": p["ruc_proveedor"],
-                "proveedor": p.get("razon_social", ""), "clave": k, "igv_comprobante": 0.0,
+                "proveedor": p.get("razon_social", ""), "descripcion": "", "clave": k, "igv_comprobante": 0.0,
                 "igv_propuesta": float(p["igv"])}
         if dup.iloc[i]:
             filas.append({**base, "estado": "DUPLICADO_EN_PROPUESTA", "credito_revisado": 0.0,
@@ -242,5 +252,5 @@ def rce_ajustado(conciliacion: pd.DataFrame) -> pd.DataFrame:
     for _, r in ok.iterrows():
         filas.append({"serie_numero": r["serie_numero"], "ruc_proveedor": r["ruc_proveedor"],
                       "proveedor": r["proveedor"], "igv": r["credito_revisado"],
-                      "origen": "agregado por Cuadra" if r["estado"] == "FALTA_EN_PROPUESTA" else "propuesta SUNAT"})
+                      "origen": "agregado por ValidaSire" if r["estado"] == "FALTA_EN_PROPUESTA" else "propuesta SUNAT"})
     return pd.DataFrame(filas)

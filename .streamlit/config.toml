@@ -1,5 +1,8 @@
 [theme]
-primaryColor = "#0F766E"
+primaryColor = "#1D4ED8"
+backgroundColor = "#FFFFFF"
+secondaryBackgroundColor = "#EFF6FF"
+textColor = "#0F172A"
 baseRadius = "medium"
 
 [server]

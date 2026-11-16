@@ -12,7 +12,9 @@
 | `comprobantes/` | 15 imágenes (13 facturas, 2 boletas). C07 está también como foto de celular (`_foto.jpg`), que es la que usa el demo. Se regeneran con `python scripts/generar_comprobantes.py`. |
 | `compras_reales.csv` | Verdad terreno: lo que el OCR debería extraer, la categoría y si da crédito fiscal. |
 | `propuesta_rce.csv` | Propuesta de compras de SUNAT con errores plantados. Formato simplificado, no el layout oficial del SIRE (el cargador acepta varios nombres de columna). |
-| `ventas_resumen.csv` | Ventas del mes. |
+| `ventas_resumen.csv` | Ventas del mes, en dos líneas (boletas y facturas). |
+| `ventas_registro.csv` | Reporte de ventas del POS: 31 resúmenes diarios de boletas (`RC-AAAAMMDD-1`) y 6 facturas; base S/ 52,000. Se regenera con `python scripts/generar_ventas.py`. |
+| `propuesta_rvie.csv` | Propuesta de ventas del SIRE (RVIE). Coincide con el reporte: en el caso, los errores están en las compras. |
 | `discrepancias_esperadas.csv` | Lo que el conciliador debe detectar. |
 | `resultado_esperado.json` | Cifras correctas; las usan los tests. |
 | `extraccion_cache.json` | Lectura ya calculada, para el "modo rápido" del demo. |

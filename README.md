@@ -1,8 +1,10 @@
-# Cuadra
+# ValidaSire
+
+<img src="assets/mascota/portada.png" alt="Don Cuy, la mascota de ValidaSire" width="150" align="right">
 
 > **Hacemos que los dueños de restaurantes MYPE revisen su IGV del mes en 5 minutos, mediante la lectura automática de sus facturas de compra y su conciliación contra la propuesta del SIRE, con la tasa especial del rubro.**
 
-**Demo:** https://cuadra-igv.streamlit.app (abre con el caso de ejemplo: https://cuadra-igv.streamlit.app/?demo=1) · **Video de respaldo:** _[link al video de 60-90 s]_ · **Corre en local:** ver [Cómo correrlo](#cómo-correrlo)
+**Demo:** https://validasire.streamlit.app (abre con el caso de ejemplo: https://validasire.streamlit.app/?demo=1) · **Video de respaldo:** _[link al video de 60-90 s]_ · **Corre en local:** ver [Cómo correrlo](#cómo-correrlo)
 
 ![Resultado de la revisión](docs/capturas/3_resultado.png)
 
@@ -55,10 +57,12 @@ Con la tasa especial de restaurantes (8 % IGV + 2,5 % IPM = 10,5 % en 2026) y co
 
 **Qué construimos.** Una app web donde el dueño o su contador:
 
-1. Sube las **fotos** de sus facturas y boletas de compra. El OCR las lee (incluso una foto girada tomada con el celular) y extrae RUC, serie, fecha, base, IGV y total. Claude verifica la lectura con salidas estructuradas; si las dos lecturas no coinciden, la fila queda marcada para revisar.
-2. Sube la **propuesta del RCE** que exporta del SIRE y sus ventas del mes.
-3. Recibe **qué falta, qué sobra y qué hacer**, y el **IGV a pagar** con y sin la revisión, calculado con código determinista y la tasa especial del rubro. Descarga el RCE ajustado y un reporte para el contador.
-4. Recibe un **diagnóstico del negocio**: cuánto IGV podría recuperar al mes y al año, en qué compras (boletas de empresas que deberían darle factura, hielo o bolsas sin comprobante), dónde **no** hay IGV que recuperar porque el producto fresco está exonerado (pero sí costo que sustentar para Renta), cuándo aplica la **liquidación de compra**, si sus **talonarios** sirven, qué requisitos debe cumplir un comprobante para dar crédito, y recomendaciones de orden priorizadas. Todo se descarga en **Excel** con las fórmulas.
+0. Indica su RUC, periodo, régimen y si es un **caso especial**: restaurante, hotel o alojamiento turístico MYPE (tasa especial de la Ley 31556). La app verifica en ese momento los requisitos (ingresos hasta 1,700 UIT, 70 % del rubro y vinculación económica); si no los cumple, calcula con la tasa general.
+1. **Compras → RCE.** Sube las **fotos** de las facturas y boletas que le dieron sus proveedores y la **propuesta del RCE** del SIRE. El OCR las lee (incluso una foto girada tomada con el celular) y extrae RUC, serie, fecha, producto, base, IGV y total. Claude verifica la lectura con salidas estructuradas; si las dos lecturas no coinciden, la fila queda marcada para revisar. Si sube por error una factura que emitió él mismo, la app le avisa que es una venta.
+2. **Ventas → RVIE.** Sube el reporte de ventas de su sistema de facturación o POS y la **propuesta del RVIE**. Las ventas no se suben como fotos porque ya son electrónicas.
+3. Recibe **qué falta, qué sobra y qué hacer** en compras y en ventas, con el producto de cada comprobante, y el **IGV a pagar** con y sin la revisión, calculado con código determinista. La mascota, Don Cuy, le dice si puede aceptar la propuesta ("¡Cuy-dado perfecto!") o si debe revisarla primero ("¡Ojo con el SIRE!").
+4. En otra pestaña recibe un **diagnóstico del negocio**: cuánto IGV podría recuperar al mes y al año, en qué compras (boletas de empresas que deberían darle factura, hielo o bolsas sin comprobante), dónde **no** hay IGV que recuperar porque el producto fresco está exonerado (pero sí costo que sustentar para Renta), cuándo aplica la **liquidación de compra**, si sus **talonarios** sirven, qué requisitos debe cumplir un comprobante para dar crédito, y recomendaciones de orden priorizadas.
+5. En la pestaña **Para tu contador** descarga el expediente en **Excel** (con las fórmulas), la lista final de compras con crédito para complementar o reemplazar la propuesta, un resumen y un mensaje de WhatsApp para el dueño.
 
 **Normativa al día.** Las tasas, la UIT y los topes viven en [data/normativa/parametros.json](data/normativa/parametros.json), con la fecha de la última revisión, que la app muestra ("Con información tributaria actualizada al 15/11/2026"). Cada lunes, un monitor ([scripts/monitor_normativa.py](scripts/monitor_normativa.py), en GitHub Actions) lee el índice oficial de Resoluciones de Superintendencia de SUNAT, filtra las normas nuevas sobre IGV, SIRE, comprobantes, liquidación de compra, etc., y abre un issue para revisarlas. **Ningún cambio de tasa se aplica solo:** una persona lee la norma, actualiza el JSON y los tests deben pasar. Si pasan más de 45 días sin revisión, la app lo advierte.
 
@@ -78,13 +82,15 @@ Con la tasa especial de restaurantes (8 % IGV + 2,5 % IPM = 10,5 % en 2026) y co
 
 ## 6. Demo
 
-**URL:** https://cuadra-igv.streamlit.app · **Caso de ejemplo directo:** `/?demo=1` · **Video:** _[link]_
+**URL:** https://validasire.streamlit.app · **Caso de ejemplo directo:** `/?demo=1` · **Video:** _[link]_
 
-| 1. Comprobantes leídos | 2. Foto de celular y texto del OCR | 3. Resultado | 4. Diagnóstico |
-|---|---|---|---|
-| ![](docs/capturas/1_comprobantes.png) | ![](docs/capturas/2_foto_y_ocr.png) | ![](docs/capturas/3_resultado.png) | ![](docs/capturas/4_diagnostico.png) |
+| 1. Tu negocio y casos especiales | 2. Compras leídas por el OCR | 3. Resultado |
+|---|---|---|
+| ![](docs/capturas/1_portada.png) | ![](docs/capturas/2_compras.png) | ![](docs/capturas/3_resultado.png) |
+| **4. Qué revisar, con el producto** | **5. Diagnóstico del negocio** | **6. Para tu contador** |
+| ![](docs/capturas/4_hallazgos.png) | ![](docs/capturas/5_diagnostico.png) | ![](docs/capturas/6_contador.png) |
 
-**Caso de ejemplo:** Cevichería Mar y Sazón E.I.R.L., octubre de 2026. 15 comprobantes (13 facturas y 2 boletas), una propuesta del RCE con dos errores plantados y ventas por S/ 52,000. **Todo es ficticio** (RUC, razones sociales, montos). Detalle en [data/caso_sintetico/](data/caso_sintetico/).
+**Caso de ejemplo:** Cevichería Mar y Sazón E.I.R.L., octubre de 2026. 15 comprobantes de compra (13 facturas y 2 boletas), una propuesta del RCE con dos errores plantados, y ventas por S/ 52,000 (31 resúmenes diarios de boletas y 6 facturas) que coinciden con la propuesta del RVIE. **Todo es ficticio** (RUC, razones sociales, montos). Detalle en [data/caso_sintetico/](data/caso_sintetico/).
 
 ### Arquitectura
 
@@ -100,13 +106,15 @@ flowchart LR
     F --> G
     H[Propuesta RCE<br/>CSV del SIRE] --> I[Conciliación determinista<br/>backend/conciliacion.py]
     G --> I
-    J[Ventas del mes] --> K[Cálculo de IGV]
+    J[Reporte de ventas del POS] --> V[Conciliación de ventas<br/>backend/ventas.py]
+    R[Propuesta RVIE<br/>CSV del SIRE] --> V
+    V --> K[Cálculo de IGV]
     I --> K
     P[data/normativa/parametros.json<br/>tasas, UIT, fecha de revisión] --> K
     S[Monitor semanal<br/>índice de normas SUNAT] -. issue para revisar .-> P
-    K --> D[Diagnóstico determinista<br/>backend/diagnostico.py]
-    N[Compras sin comprobante<br/>estimadas por el dueño] --> D
-    D --> L[Dashboard Streamlit<br/>reporte · Excel · mensaje]
+    K --> Dg[Diagnóstico determinista<br/>backend/diagnostico.py]
+    N[Compras sin comprobante<br/>estimadas por el dueño] --> Dg
+    Dg --> L[Dashboard Streamlit<br/>reporte · Excel · mensaje]
     K --> L
 ```
 
@@ -147,6 +155,7 @@ Sobre los 15 comprobantes del caso, OCR + reglas extrae **100 % de los campos** 
 | **Dueño** | 1 restaurante | **S/ 39 al mes** | 1 RUC, hasta 100 comprobantes al mes |
 | **Contador** | Contador independiente | **S/ 199 al mes** | Hasta 20 RUC (≈ S/ 10 por cliente) |
 | **Estudio** | Estudio contable | **S/ 449 al mes** | Hasta 60 RUC, reporte por cliente |
+| **Pro** (servicio adicional) | Dueño que no tiene contador o quiere delegar | **S/ 59 por periodo** (referencial) | Un contador aliado prepara el archivo para complementar o reemplazar la propuesta. El dueño lo sube con su Clave SOL: ValidaSire nunca la pide. En el demo es solo un botón de interés: no cobra ni guarda datos. |
 
 **Costo por RUC al mes** (supuesto: 80 comprobantes al mes; tipo de cambio S/ 3.75 por US$):
 
@@ -161,7 +170,7 @@ Sobre los 15 comprobantes del caso, OCR + reglas extrae **100 % de los campos** 
 - **Palanca de costo:** con Claude Haiku 5.5 (US$ 0.10/0.50 por millón) el LLM baja a ≈ S/ 0.10 por RUC y el plan Contador sube a ~90 % de margen. Lo cambiaremos cuando la evaluación muestre que mantiene la exactitud. La app ya registra los tokens usados por comprobante para medirlo con datos reales.
 - **Sin API key**, el producto funciona con OCR + reglas a costo casi cero: es el plan de respaldo si sube el precio del LLM.
 
-**Qué sigue:** probar con el contador entrevistado con su propia propuesta del SIRE (anonimizada), leer el layout oficial de exportación del SIRE, recibir las fotos directamente por WhatsApp (el canal que ya usan los dueños) y agregar el registro de ventas (RVIE).
+**Qué sigue:** probar con el contador entrevistado con su propia propuesta del SIRE (anonimizada), leer el layout oficial de exportación del SIRE, leer el layout oficial del RVIE (hoy las boletas se agrupan por resumen diario), recibir las fotos directamente por WhatsApp (el canal que ya usan los dueños) y sumar otros casos especiales (IVAP del arroz pilado, Amazonía, exportadores).
 
 ## 8. Herramientas del curso
 
@@ -181,6 +190,7 @@ Usé **Claude Code** como co-founder técnico. Lo que hizo:
 - **Mejoró el caso sintético:** detectó que, en la primera versión, la factura faltante tenía el RUC del cliente mal digitado, lo que en la práctica **no** da crédito en el mes (hay que anularla y reemitirla). La cambió por una factura física de contingencia y movió el caso del RUC errado a una alerta propia. También regeneró las imágenes porque las razones sociales largas se montaban sobre el recuadro de la serie.
 - **Investigó y verificó parámetros:** tasas 2026-2027 (Leyes 31556, 32219 y 32387), Apéndice I prorrogado a 2028 (Ley 32542) y cambios de 2026 en la liquidación de compra (RS 000047-2026/SUNAT). Quedaron en `data/normativa/parametros.json` con su fuente. Al verificar el Apéndice I detectó que el caso cobraba IGV por limón y verduras (exonerados) y cambió esas descripciones por productos gravados.
 - **Construyó el diagnóstico y el monitor de normativa** a partir de mis notas de entrevistas: requisitos del crédito fiscal, talonarios, liquidación de compra, exportación a Excel y el scraping del índice de SUNAT.
+- **Rediseñó la app con mis comentarios de prueba:** nombre ValidaSire, mi mascota en los mensajes de resultado, casos especiales antes de subir archivos, compras y ventas separadas (RCE y RVIE), producto en cada hallazgo, cifras explicadas en lenguaje simple, diagnóstico y descargas en pestañas propias. Al preparar las imágenes de la mascota quitó el fondo y **borró el logo de SUNAT del chaleco**, para que la app no parezca un producto oficial.
 - **Redactó** este README y la guía de entrevistas.
 
 Lo que hice yo: elegir el problema y el usuario, acotar el alcance a un solo flujo, decidir que el LLM no calcula impuestos, realizar las entrevistas, revisar el código y las cifras, y desplegar.
@@ -200,4 +210,6 @@ scripts/        generación de comprobantes, evaluación y capturas
 tests/          pytest
 ```
 
-**Aviso:** Cuadra es una herramienta de revisión y no reemplaza la asesoría de un contador. Información tributaria actualizada al 15/11/2026; verifícala antes de declarar. Licencia MIT.
+**Aviso:** ValidaSire es un proyecto independiente, no es un producto de SUNAT ni está afiliado a ella. Es una herramienta de revisión y no reemplaza la asesoría de un contador. Información tributaria actualizada al 15/11/2026; verifícala antes de declarar.
+
+**Licencia:** el código está bajo licencia MIT. **La mascota Don Cuy (imágenes en `assets/mascota/`) es © Britney Daily Miranda Gutiérrez, todos los derechos reservados**, y no está incluida en la licencia MIT.
