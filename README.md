@@ -132,8 +132,8 @@ flowchart LR
 ### Cómo correrlo
 
 ```bash
-git clone https://github.com/BritneyMiranda/cuadra-igv.git
-cd cuadra-igv
+git clone https://github.com/BritneyMiranda/validasire.git
+cd validasire
 python -m venv .venv && source .venv/bin/activate   # en Windows: .venv\Scripts\activate
 pip install -r requirements.txt
 cp .env.example .env            # opcional: pon tu ANTHROPIC_API_KEY para la verificación con Claude
@@ -142,7 +142,7 @@ streamlit run app/streamlit_app.py
 
 Abre http://localhost:8501 y pulsa **"Usar caso de ejemplo"**. Pruebas: `pytest`. Evaluación de la extracción: `python scripts/evaluar_extraccion.py`.
 
-**Despliegue (Streamlit Community Cloud):** New app → repo `cuadra-igv`, rama `main`, archivo `app/streamlit_app.py`, Python 3.12. La API key va en *Settings → Secrets* como `ANTHROPIC_API_KEY = "..."`, nunca en el repo.
+**Despliegue (Streamlit Community Cloud):** New app → repo validasire, rama `main`, archivo `app/streamlit_app.py`, Python 3.12. La API key va en *Settings → Secrets* como `ANTHROPIC_API_KEY = "..."`, nunca en el repo.
 
 ### Evaluación
 
