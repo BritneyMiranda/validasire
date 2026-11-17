@@ -2,7 +2,7 @@
 
 <img src="assets/mascota/portada.png" alt="Don Cuy, la mascota de ValidaSIRE" width="150" align="right">
 
-> **Hacemos que los dueños de restaurantes MYPE revisen su IGV del mes en 5 minutos, mediante la lectura automática de sus facturas de compra y su conciliación contra la propuesta del SIRE, con la tasa especial del rubro.**
+> **Hacemos que los dueños de MYPE revisen su SIRE antes de aceptar la propuesta de SUNAT, mediante la lectura automática de sus facturas de compra y la conciliación de sus compras (RCE) y ventas (RVIE), con la tasa general de IGV o la tasa especial de restaurantes, hoteles y alojamientos turísticos.**
 
 **Demo:** https://validasire.streamlit.app (abre con el caso de ejemplo: https://validasire.streamlit.app/?demo=1) · **Video de respaldo:** _[link al video de 60-90 s]_ · **Corre en local:** ver [Cómo correrlo](#cómo-correrlo)
 
@@ -12,7 +12,7 @@
 
 ## 1. One-liner
 
-Hacemos que los dueños de restaurantes MYPE revisen su IGV del mes en 5 minutos, mediante la lectura automática de sus facturas de compra y su conciliación contra la propuesta del SIRE, con la tasa especial del rubro.
+Hacemos que los dueños de MYPE revisen su SIRE antes de aceptar la propuesta de SUNAT, mediante la lectura automática de sus facturas de compra y la conciliación de sus compras (RCE) y ventas (RVIE), con la tasa general de IGV o la tasa especial de restaurantes, hoteles y alojamientos turísticos.
 
 ## 2. Founder
 
@@ -29,7 +29,7 @@ Cómo cubro cada frente con agentes de IA:
 
 ## 3. Problema
 
-**Quién lo sufre.** Los restaurantes MYPE de Lima (cevicherías, menús, pollerías) en el Régimen MYPE Tributario o el RER, con 3 a 15 trabajadores, que venden con boleta (POS, Yape, Plin) y compran a mayoristas y distribuidoras. Y sus contadores externos, que llevan entre 20 y 60 negocios así.
+**Quién lo sufre.** Las MYPE del Régimen MYPE Tributario o del RER que cada mes deben revisar su propuesta del SIRE, y sus contadores externos, que llevan entre 20 y 60 negocios así. Empezamos por el caso más delicado: los restaurantes, hoteles y alojamientos turísticos MYPE (en el demo, una cevichería de Lima con 3 a 15 trabajadores, que vende con boleta por POS, Yape o Plin y compra a mayoristas y distribuidoras), porque con la tasa especial de IGV un error en compras pesa casi tanto como sus ventas. Para el resto de MYPE la app calcula con la tasa general de 18 %.
 
 **Qué pasa.** En el SIRE, cada mes SUNAT arma una **propuesta** del Registro de Compras (RCE) y del de Ventas (RVIE) con los comprobantes electrónicos que conoce, y el contribuyente puede aceptarla, complementarla o reemplazarla. Esto es lo que dicen la prensa y los estudios:
 
