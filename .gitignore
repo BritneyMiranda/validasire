@@ -20,7 +20,3 @@ guion*.md
 
 # datos reales de clientes: nunca al repo
 data/privado/
-
-# fotos de los perfiles de ejemplo: no publicar sin confirmar la licencia
-assets/aliados/*.jpg
-assets/aliados/*.png

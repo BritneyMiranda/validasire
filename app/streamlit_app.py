@@ -105,6 +105,9 @@ st.html(f"""
   background: linear-gradient(135deg, #EEF2FF, #E0E7FF); border: 2px solid #4F46E5; border-radius: 14px;
   padding: 1rem 1.2rem; box-shadow: 0 2px 8px rgba(79, 70, 229, .18);
 }}
+[class*="st-key-azul_"] button {{ background: #1D4ED8; border-color: #1D4ED8; }}
+[class*="st-key-azul_"] button:hover {{ background: #1E3A8A; border-color: #1E3A8A; }}
+[class*="st-key-azul_"] button * {{ color: #FFFFFF !important; }}
 .st-key-recuerda {{ background: #FEF3C7; border-left: 5px solid #D97706; border-radius: 10px; padding: .7rem .9rem; }}
 [class*="st-key-serv_"] {{
   background: #FFFFFF; border-top: 6px solid #D97706; border-radius: 14px; padding: 1rem 1.1rem;
@@ -283,7 +286,8 @@ with st.sidebar:
     if dias > 45:
         st.warning(f"Han pasado {dias} días desde la última revisión de normas: verifica las tasas antes de declarar.",
                    icon=":material/schedule:")
-    with st.popover("Fuentes y pendientes", icon=":material/menu_book:", width="stretch"):
+    with st.container(key="azul_fuentes"), st.popover("Fuentes y pendientes", icon=":material/menu_book:",
+                                                       width="stretch"):
         for f in FUENTES:
             st.markdown(f"- **{f['norma']}**: {f['tema']}")
         if PENDIENTES:
@@ -293,10 +297,11 @@ with st.sidebar:
 
     st.divider()
     st.subheader(":material/sell: Planes")
-    with st.popover("Ver planes y prueba gratis", icon=":material/workspace_premium:", width="stretch"):
-        mostrar_planes()
-    with st.popover("¿Eres contador? Únete a nuestros aliados", icon=":material/group_add:", width="stretch"):
-        mostrar_union(clave="sidebar")
+    with st.container(key="azul_planes"):
+        with st.popover("Ver planes y prueba gratis", icon=":material/workspace_premium:", width="stretch"):
+            mostrar_planes()
+        with st.popover("¿Eres contador? Únete a nuestros aliados", icon=":material/group_add:", width="stretch"):
+            mostrar_union(clave="sidebar")
 
     st.divider()
     st.subheader(":material/smart_toy: Lectura de comprobantes")
