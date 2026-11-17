@@ -28,7 +28,8 @@ from backend.diagnostico import LIQUIDACION, REQUISITOS_CREDITO, TALONARIOS, a_e
 from backend.extraccion import cliente_claude, extraer, modelo_claude  # noqa: E402
 from backend.ocr import leer  # noqa: E402
 from backend.parametros import (  # noqa: E402
-    ACTUALIZADO_AL, FUENTES, MINIMO_INGRESOS_RUBRO, PENDIENTES, TASAS, TOPE_TASA_ESPECIAL_UIT, UIT,
+    ACTUALIZADO_AL, FUENTES, MINIMO_INGRESOS_RUBRO, PENDIENTES, RER_CUOTA, RMT_TOPE_PAGO_1PCT_UIT,
+    RMT_TOPE_REGIMEN_UIT, TASAS, TOPE_TASA_ESPECIAL_UIT, UIT,
     VINCULACION_MAX_CAPITAL, dias_desde_revision, tasa,
 )
 from backend.reporte import mensaje_dueno, reporte_contador  # noqa: E402
@@ -336,8 +337,19 @@ with st.container(key="tu_negocio"):
     ruc_propio = c1.text_input("RUC del negocio", value=caso.RUC_PROPIO, max_chars=11)
     anio = c2.selectbox("Año", sorted(TASAS), index=0)
     mes = c3.selectbox("Mes", MESES, index=9)
-    regimen_renta = c4.radio("Régimen de renta", ["RMT", "RER"], horizontal=True,
-                             format_func=lambda r: "MYPE Tributario (RMT)" if r == "RMT" else "Especial (RER)")
+    regimen_renta = c4.radio(
+        "Régimen de renta", ["RMT", "RER"], horizontal=True,
+        format_func=lambda r: "MYPE Tributario (RMT)" if r == "RMT" else "Especial (RER)",
+        help=f"Es el régimen del impuesto a la renta en el que está tu RUC (lo ves en tu ficha RUC de SUNAT). "
+             f"En los dos pagas IGV igual; cambia la renta.\n\n"
+             f"**MYPE Tributario (RMT):** para negocios que venden hasta {RMT_TOPE_REGIMEN_UIT:,} UIT al año. Cada "
+             f"mes pagas a cuenta de la renta el 1 % de tus ventas (si en el año no pasas de {RMT_TOPE_PAGO_1PCT_UIT} "
+             "UIT) y en marzo-abril haces la declaración anual sobre tu utilidad: por eso las compras sin "
+             "comprobante te hacen pagar más renta.\n\n"
+             f"**Especial (RER):** para negocios que venden hasta S/ 525,000 al año. Pagas cada mes una cuota "
+             f"fija del {RER_CUOTA:.1%} de tus ventas y no hay declaración anual: las compras sin comprobante no "
+             "suben tu renta, pero igual no te dan IGV para descontar.\n\n"
+             "Si estás en el Nuevo RUS no pagas IGV aparte y ValidaSIRE no aplica.")
 
     with st.container(key="casos_especiales"):
         caso_especial = st.radio(
