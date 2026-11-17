@@ -1,4 +1,4 @@
-"""Monitor de normativa (scraping, sesión 03): avisa cuando SUNAT publica algo que puede cambiar ValidaSire.
+"""Monitor de normativa (scraping, sesión 03): avisa cuando SUNAT publica algo que puede cambiar ValidaSIRE.
 
 Lee el índice oficial de Resoluciones de Superintendencia del año, compara contra las normas ya
 vistas (data/normativa/normas_vistas.json) y filtra las nuevas por palabras clave (IGV, IPM,
@@ -47,7 +47,7 @@ def _limpiar(t: str) -> str:
 
 
 def descargar(url: str) -> str:
-    req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0 (ValidaSire monitor de normativa)"})
+    req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0 (ValidaSIRE monitor de normativa)"})
     datos = urllib.request.urlopen(req, timeout=30).read()
     try:
         return datos.decode("utf-8")
@@ -86,7 +86,7 @@ def main() -> int:
     vistas = set(json.loads(VISTAS.read_text(encoding="utf-8"))["ids"]) if VISTAS.exists() else set()
     nuevas = [n for n in relevantes(normas) if n["id"] not in vistas]
 
-    print(f"{len(normas)} normas en el índice {args.anio}; {len(nuevas)} nuevas y relevantes para ValidaSire.")
+    print(f"{len(normas)} normas en el índice {args.anio}; {len(nuevas)} nuevas y relevantes para ValidaSIRE.")
     for n in nuevas:
         print(f"- {n['nombre']} ({n['fecha'] or 's/f'}): {n['sumilla'][:160]}")
 

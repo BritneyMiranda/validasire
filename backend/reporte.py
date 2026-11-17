@@ -50,7 +50,7 @@ def reporte_contador(r: Resumen, con: pd.DataFrame, ruc: str, con_ventas: pd.Dat
 |---|---|---|---|---|---|
 {filas}
 
-Generado por ValidaSire. Los cálculos son deterministas (backend/conciliacion.py); verifique antes de presentar.
+Generado por ValidaSIRE. Los cálculos son deterministas (backend/conciliacion.py); verifique antes de presentar.
 """
 
 

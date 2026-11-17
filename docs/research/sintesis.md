@@ -26,7 +26,7 @@
 
 ## Qué cambió en el producto por estas conversaciones
 
-| Hallazgo | Cambio en ValidaSire |
+| Hallazgo | Cambio en ValidaSIRE |
 |---|---|
 | Dos dueños no saben qué compras sirven para descontar IGV ni cuándo pedir factura (A, B) | Sección **4 · Diagnóstico**: IGV recuperable por compra, distinción entre gravado y exonerado (frescos del mercado), y pestaña "¿Qué compras me sirven?" con los requisitos del crédito fiscal. |
 | Talonarios que no saben si aplican (B) | Pestaña "¿Mi talonario sirve?": contingencia, imprenta autorizada y consulta de validez en SUNAT. |

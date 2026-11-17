@@ -1,4 +1,4 @@
-# Arquitectura de ValidaSire
+# Arquitectura de ValidaSIRE
 
 ```mermaid
 flowchart LR

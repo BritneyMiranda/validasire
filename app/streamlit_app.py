@@ -1,4 +1,4 @@
-"""ValidaSire: revisa tu SIRE (compras y ventas) antes de aceptar la propuesta de SUNAT.
+"""ValidaSIRE: revisa tu SIRE (compras y ventas) antes de aceptar la propuesta de SUNAT.
 
 Flujo: fotos de comprobantes de compra -> OCR (PP-OCR) -> extracción (reglas + Claude) -> conciliación
 contra la propuesta del RCE; reporte de ventas del POS -> conciliación contra la propuesta del RVIE;
@@ -44,7 +44,7 @@ SIN_COMPROBANTE_CASO = pd.DataFrame([
 ])
 SIN_COMPROBANTE_VACIO = pd.DataFrame([{"descripcion": "", "monto": 0.0}])
 
-st.set_page_config(page_title="ValidaSire · Revisa tu SIRE", page_icon=":material/fact_check:", layout="wide")
+st.set_page_config(page_title="ValidaSIRE · Revisa tu SIRE", page_icon=":material/fact_check:", layout="wide")
 
 # Secretos: en local, archivo .env; en Streamlit Cloud, Settings > Secrets. Nunca en el repo.
 try:
@@ -65,8 +65,51 @@ TONOS = [("#EFF6FF", "#1D4ED8"), ("#DBEAFE", "#1E3A8A"), ("#E0F2FE", "#0369A1"),
 css_tonos = "\n".join(
     f'[class*="st-key-rec_t{i}_"] {{ background: {fondo}; border-left: 6px solid {borde} !important; }}'
     for i, (fondo, borde) in enumerate(TONOS))
+# Un color por pestaña, para que se vean sobre el fondo azul.
+COLOR_PESTANA = ["#1D4ED8", "#0F766E", "#7C3AED", "#D97706"]
+css_pestanas = "\n".join(
+    f'.st-key-pestanas [data-testid="stTab"]:nth-child({i + 1}) {{ --c: {c}; }}'
+    for i, c in enumerate(COLOR_PESTANA))
 st.html(f"""
 <style>
+/* tarjetas blancas sobre el fondo azul */
+[class*="st-key-card_"], [class*="st-key-aliado_"] {{
+  background: #FFFFFF; border: 1px solid #BFDBFE; border-radius: 14px; padding: 1rem 1.2rem;
+  box-shadow: 0 2px 6px rgba(30, 58, 138, .10);
+}}
+[class*="st-key-aliado_"] {{ border-left: 6px solid #1D4ED8; }}
+[data-testid="stMetric"] {{ background: #FFFFFF; border-radius: 12px; }}
+[data-testid="stExpander"] details {{ background: #FFFFFF; border-radius: 12px; }}
+/* pestañas principales */
+.st-key-pestanas [role="tablist"] {{ gap: .6rem; flex-wrap: wrap; padding-bottom: .5rem; }}
+.st-key-pestanas [data-testid="stTab"] {{
+  background: #FFFFFF; border: 2px solid var(--c); border-radius: 999px; padding: .45rem 1.1rem;
+  color: var(--c); box-shadow: 0 2px 6px rgba(30, 58, 138, .12);
+}}
+.st-key-pestanas [data-testid="stTab"] * {{ font-weight: 700; font-size: 1rem; color: inherit !important; }}
+.st-key-pestanas [data-testid="stTab"][aria-selected="true"] {{ background: var(--c); color: #FFFFFF; }}
+{css_pestanas}
+/* avisos que deben resaltar */
+.st-key-ayuda_pro, .st-key-ayuda_diag {{
+  background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%); border-radius: 16px; padding: 1.1rem 1.4rem;
+  box-shadow: 0 4px 14px rgba(217, 119, 6, .35);
+}}
+.st-key-ayuda_pro [data-testid="stMarkdownContainer"] :is(p, li, h3, span),
+.st-key-ayuda_diag [data-testid="stMarkdownContainer"] :is(p, span) {{ color: #FFFFFF !important; }}
+.st-key-ayuda_pro button, .st-key-ayuda_diag button {{ background: #FFFFFF; border: 0; }}
+.st-key-ayuda_pro button, .st-key-ayuda_diag button {{ min-height: 3rem; }}
+.st-key-ayuda_pro button [data-testid="stMarkdownContainer"] :is(p, span),
+.st-key-ayuda_diag button [data-testid="stMarkdownContainer"] :is(p, span),
+.st-key-ayuda_pro button span, .st-key-ayuda_diag button span {{ color: #B45309 !important; font-weight: 700; font-size: 1.05rem; }}
+[class*="st-key-union_"] {{
+  background: linear-gradient(135deg, #EEF2FF, #E0E7FF); border: 2px solid #4F46E5; border-radius: 14px;
+  padding: 1rem 1.2rem; box-shadow: 0 2px 8px rgba(79, 70, 229, .18);
+}}
+.st-key-recuerda {{ background: #FEF3C7; border-left: 5px solid #D97706; border-radius: 10px; padding: .7rem .9rem; }}
+[class*="st-key-serv_"] {{
+  background: #FFFFFF; border-top: 6px solid #D97706; border-radius: 14px; padding: 1rem 1.1rem;
+  box-shadow: 0 2px 8px rgba(30, 58, 138, .12);
+}}
 .st-key-tu_negocio {{
   background: linear-gradient(135deg, #1E3A8A 0%, #1D4ED8 60%, #2563EB 100%);
   border-radius: 16px; padding: 1.1rem 1.4rem 1.3rem;
@@ -76,7 +119,8 @@ st.html(f"""
 .st-key-tu_negocio [data-testid="stCaptionContainer"] p {{ color: #FFFFFF !important; }}
 .st-key-tu_negocio [data-testid="stCaptionContainer"] {{ opacity: .9; }}
 .st-key-casos_especiales {{ background: rgba(255,255,255,.10); border-radius: 12px; padding: .8rem 1rem; }}
-[class*="st-key-rec_t"] {{ border-radius: 10px; padding: .75rem 1rem; color: #0F172A; }}
+[class*="st-key-rec_t"] {{ border-radius: 10px; padding: .75rem 1rem; color: #0F172A;
+  box-shadow: 0 2px 6px rgba(30, 58, 138, .10); }}
 {css_tonos}
 .st-key-banner_ok {{ background: #EFF6FF; border: 2px solid #1D4ED8; border-radius: 16px; padding: .6rem 1rem; }}
 .st-key-banner_alerta {{ background: #FFF7ED; border: 2px solid #EA580C; border-radius: 16px; padding: .6rem 1rem; }}
@@ -165,12 +209,20 @@ def mostrar_planes() -> None:
                "su colegiatura y DNI, que se verifican en el padrón del Colegio de Contadores. " + AVISO_DEMO)
 
 
+PESTANAS = [":material/fact_check: Revisión del SIRE", ":material/insights: Diagnóstico del negocio",
+            ":material/folder_shared: Para tu contador", ":material/workspace_premium: Servicios PRO"]
+
+
+def ir_a_pro() -> None:
+    st.session_state["pestanas"] = PESTANAS[3]
+
+
 def mostrar_union(clave: str) -> None:
     st.markdown("**¿Eres contador? Únete a nuestros aliados**\n\n"
-                "- **Qué ganas:** clientes MYPE que ya revisaron su SIRE con ValidaSire y necesitan ayuda: recuperar "
+                "- **Qué ganas:** clientes MYPE que ya revisaron su SIRE con ValidaSIRE y necesitan ayuda: recuperar "
                 "crédito, cierre anual, consejería o esquelas de SUNAT.\n"
                 "- **Requisitos:** colegiatura vigente y DNI, que se verifican en el padrón del Colegio de Contadores.\n"
-                "- **Cómo cobramos:** el cliente paga el servicio por la app; tú recibes el **80 %** y ValidaSire se "
+                "- **Cómo cobramos:** el cliente paga el servicio por la app; tú recibes el **80 %** y ValidaSIRE se "
                 "queda con el **20 %** como comisión. Sin pago mensual por aparecer en la lista.")
     if st.button("Postular (demo)", icon=":material/how_to_reg:", key=f"postular_{clave}", type="primary"):
         st.toast("¡Gracias por tu interés! " + AVISO_DEMO, icon=":material/info:")
@@ -219,6 +271,12 @@ def cargar_caso(rapido: bool, con_notas: bool = False) -> None:
 
 # ---------------------------------------------------------------- barra lateral
 with st.sidebar:
+    with st.container(key="recuerda"):
+        st.markdown("**:material/campaign: Recuerda:** si tu negocio es una **MYPE** del Régimen MYPE Tributario o del "
+                    "RER, **cada mes** tienes que generar en el **SIRE** de SUNAT tu registro de ventas (RVIE) y tu "
+                    "registro de compras (RCE), según el cronograma de tu último dígito de RUC. SUNAT te da una "
+                    "propuesta; ValidaSIRE te ayuda a revisarla antes de aceptarla.")
+    st.write("")
     st.subheader(":material/gavel: Normativa")
     dias = dias_desde_revision()
     st.caption(f"Información tributaria actualizada al **{ACTUALIZADO_AL:%d/%m/%Y}**.")
@@ -234,6 +292,13 @@ with st.sidebar:
                    "(`scripts/monitor_normativa.py`). Ningún cambio de tasa se aplica sin revisión humana.")
 
     st.divider()
+    st.subheader(":material/sell: Planes")
+    with st.popover("Ver planes y prueba gratis", icon=":material/workspace_premium:", width="stretch"):
+        mostrar_planes()
+    with st.popover("¿Eres contador? Únete a nuestros aliados", icon=":material/group_add:", width="stretch"):
+        mostrar_union(clave="sidebar")
+
+    st.divider()
     st.subheader(":material/smart_toy: Lectura de comprobantes")
     hay_key = _claude() is not None
     usar_claude = st.toggle("Verificar con Claude", value=hay_key, disabled=not hay_key,
@@ -245,21 +310,14 @@ with st.sidebar:
     rapido = st.toggle("Modo rápido (resultados guardados)", value=False,
                        help="Usa la lectura ya calculada del caso de ejemplo, por si el servidor está lento.")
 
-    st.divider()
-    st.subheader(":material/sell: Planes")
-    with st.popover("Ver planes y prueba gratis", icon=":material/workspace_premium:", width="stretch"):
-        mostrar_planes()
-    with st.popover("¿Eres contador? Únete a nuestros aliados", icon=":material/group_add:", width="stretch"):
-        mostrar_union(clave="sidebar")
-
 if st.query_params.get("demo") == "1" and not ss.extracciones and not ss.es_caso:
     cargar_caso(rapido=True)
 
 # ---------------------------------------------------------------- encabezado
 h1, h2 = st.columns([4, 1], vertical_alignment="center")
 with h1:
-    st.title("ValidaSire")
-    st.markdown("**Revisa tu SIRE antes de aceptar la propuesta de SUNAT.** Sube tus facturas de compra y tus ventas: "
+    st.title("ValidaSIRE")
+    st.markdown("**Para MYPE: revisa tu SIRE antes de aceptar la propuesta de SUNAT.** Sube tus facturas de compra y tus ventas: "
                 "te decimos qué falta, qué sobra, cuánto te toca pagar de IGV y dónde puedes ahorrar.")
     st.caption(f":material/verified: Con información tributaria actualizada al {ACTUALIZADO_AL:%d/%m/%Y}.")
 h2.image(str(MASCOTA / "portada.png"), width=170)
@@ -310,16 +368,13 @@ with st.container(key="tu_negocio"):
             regimen = "general"
             st.caption(f"Ventas al {tasa(anio, 'general').total:.0%} (IGV {tasa(anio, 'general').igv:.1%} + IPM "
                        f"{tasa(anio, 'general').ipm:.1%}).")
-        st.caption("Otros casos especiales que ValidaSire todavía no calcula: venta de arroz pilado (IVAP), empresas "
+        st.caption("Otros casos especiales que ValidaSIRE todavía no calcula: venta de arroz pilado (IVAP), empresas "
                    "en la Amazonía con exoneración, exportadores. Si es tu caso, consulta a tu contador.")
 
 periodo = f"{anio}-{MESES.index(mes) + 1:02d}"
 st.write("")
 
-t_rev, t_diag, t_cont, t_ali = st.tabs([":material/fact_check: Revisión del SIRE",
-                                        ":material/insights: Diagnóstico del negocio",
-                                        ":material/folder_shared: Para tu contador",
-                                        ":material/handshake: Contadores aliados"])
+t_rev, t_diag, t_cont, t_ali = st.tabs(PESTANAS, key="pestanas", on_change="rerun")
 
 compras = con = res = con_ventas = diag = None
 
@@ -341,7 +396,7 @@ with t_rev:
         st.rerun()
 
     # ------------------------------------------------ paso 1: compras
-    with st.container(border=True):
+    with st.container(key="card_paso1"):
         st.subheader(":material/shopping_cart: 1 · Compras → RCE")
         st.caption("Sube las facturas y boletas **que te dieron tus proveedores**. Tus propias facturas de venta no van aquí.")
         col_a, col_b = st.columns([3, 2])
@@ -425,7 +480,7 @@ with t_rev:
                 ct.json(ext["comprobante"], expanded=False)
 
     # ------------------------------------------------ paso 2: ventas
-    with st.container(border=True):
+    with st.container(key="card_paso2"):
         st.subheader(":material/point_of_sale: 2 · Ventas → RVIE")
         st.caption("Tus ventas **no se suben como fotos**: ya son electrónicas. Descarga el reporte del mes de tu sistema "
                    "de facturación o POS y la propuesta del RVIE del SIRE.")
@@ -462,7 +517,7 @@ with t_rev:
 
     # ------------------------------------------------ paso 3: resultado
     listo = compras is not None and ss.propuesta_df is not None and base_ventas > 0
-    with st.container(border=True):
+    with st.container(key="card_paso3"):
         st.subheader(":material/task_alt: 3 · Resultado")
         if not listo:
             st.info("Sube tus comprobantes de compra, la propuesta del RCE y tus ventas (o usa el caso de ejemplo).",
@@ -583,8 +638,8 @@ with t_rev:
             g = pd.DataFrame([
                 {"escenario": "Si aceptas la propuesta", "concepto": "1. IGV que descuentas (crédito)", "soles": res.credito_fiscal_segun_propuesta},
                 {"escenario": "Si aceptas la propuesta", "concepto": "2. IGV a pagar", "soles": res.igv_a_pagar_si_acepta_propuesta},
-                {"escenario": "Revisado con ValidaSire", "concepto": "1. IGV que descuentas (crédito)", "soles": res.credito_fiscal_revisado},
-                {"escenario": "Revisado con ValidaSire", "concepto": "2. IGV a pagar", "soles": res.igv_a_pagar_revisado},
+                {"escenario": "Revisado con ValidaSIRE", "concepto": "1. IGV que descuentas (crédito)", "soles": res.credito_fiscal_revisado},
+                {"escenario": "Revisado con ValidaSIRE", "concepto": "2. IGV a pagar", "soles": res.igv_a_pagar_revisado},
             ])
             grafico = alt.Chart(g).mark_bar(height=28).encode(
                 y=alt.Y("escenario:N", title=None, axis=alt.Axis(labelLimit=220)),
@@ -599,27 +654,37 @@ with t_rev:
             st.caption(f"{'Pago a cuenta de renta (RMT)' if regimen_renta == 'RMT' else 'Cuota de renta (RER)'}: "
                        f"{soles(res.pago_a_cuenta_renta)} ({res.tasa_pago_a_cuenta:.1%} de tus ventas).")
 
-            # --- puente a los servicios de la red de contadores
-            with st.container(key="premium"):
-                gancho = (f"Este mes encontramos **{soles(res.credito_recuperado)}** de IGV que SUNAT no tenía. "
-                          "¿Y los 11 meses anteriores? El crédito se puede anotar hasta 12 meses después. "
-                          if res.credito_recuperado else "")
-                st.markdown("**:material/handshake: ¿Quieres que un contador te ayude?**  \n" + gancho +
-                            "En la pestaña **Contadores aliados** puedes pedir *Recupera tu crédito* (pagas solo si "
-                            "recuperas), el *Cierre anual* o una *Consejería*, también si te llegó una esquela de SUNAT.")
+    # ------------------------------------------------ puente a Servicios PRO (debe resaltar)
+    if res is not None:
+        st.write("")
+        with st.container(key="ayuda_pro"):
+            p1, p2 = st.columns([5, 2], vertical_alignment="center")
+            gancho = (f"Este mes encontramos **{soles(res.credito_recuperado)}** de IGV que SUNAT no tenía. "
+                      "¿Y en los 11 meses anteriores? El crédito se puede anotar hasta 12 meses después.\n\n"
+                      if res.credito_recuperado else "")
+            p1.markdown(
+                "### :material/workspace_premium: ¿Necesitas más ayuda?\n" + gancho +
+                "Con **Servicios PRO** lo hacemos contigo, **en coordinación con contadores aliados colegiados**, "
+                "para que cada corrección sea segura:\n"
+                "- **Recupera tu crédito:** revisamos tus últimos 12 meses. Pagas solo si recuperas.\n"
+                "- **Cierre anual:** tu declaración anual con los 12 meses ya revisados.\n"
+                "- **Consejería:** resuelve tus dudas, también si te llegó una esquela de SUNAT.")
+            p2.button("Ver Servicios PRO", icon=":material/arrow_forward:", type="secondary", width="stretch",
+                      key="btn_ir_pro", on_click=ir_a_pro)
 
 # ================================================================ pestaña 2: diagnóstico
 with t_diag:
     if res is None:
         st.info("Primero completa la revisión del SIRE (o usa el caso de ejemplo).", icon=":material/arrow_back:")
     else:
-        st.markdown("Además de lo que ya revisamos, ¿qué compras haces **sin comprobante** en un mes normal? "
-                    "(mercado, terminal, hielo, carbón, bolsas…). Un estimado basta.")
-        sin_comp = st.data_editor(
-            ss.sin_comprobante, num_rows="dynamic", hide_index=True, key="editor_sin_comprobante",
-            column_config={"descripcion": st.column_config.TextColumn("Qué compras", width="large"),
-                           "monto": st.column_config.NumberColumn("Monto al mes (S/)", min_value=0, format="%.2f")},
-        )
+        with st.container(key="card_sin_comp"):
+            st.markdown("Además de lo que ya revisamos, ¿qué compras haces **sin comprobante** en un mes normal? "
+                        "(mercado, terminal, hielo, carbón, bolsas…). Un estimado basta.")
+            sin_comp = st.data_editor(
+                ss.sin_comprobante, num_rows="dynamic", hide_index=True, key="editor_sin_comprobante",
+                column_config={"descripcion": st.column_config.TextColumn("Qué compras", width="large"),
+                               "monto": st.column_config.NumberColumn("Monto al mes (S/)", min_value=0, format="%.2f")},
+            )
         confianza_min = min(e["confianza_ocr"] for e in ss.extracciones)
         diag = diagnosticar(compras, sin_comp, con, res, anio, regimen_renta, confianza_min, vinc)
 
@@ -633,14 +698,16 @@ with t_diag:
                   help="Solo RMT: costo sin comprobante × 10 % (primer tramo, estimado conservador). En el RER es 0.")
 
         if not diag.lineas.empty:
-            st.markdown("#### Dónde se te escapa más dinero")
             vista_d = diag.lineas.assign(
                 monto=lambda d: d["monto"].map(lambda v: f"{v:,.2f}"),
                 igv_recuperable=lambda d: d["igv_recuperable"].map(lambda v: f"{v:,.2f}"),
             )[["descripcion", "origen", "tratamiento", "monto", "igv_recuperable", "que_hacer"]].rename(columns={
                 "descripcion": "Compra", "origen": "Cómo la compras", "tratamiento": "IGV",
                 "monto": "Monto (S/)", "igv_recuperable": "IGV recuperable (S/)", "que_hacer": "Qué hacer"})
-            st.table(vista_d, border="horizontal", hide_index=True, alt="Compras sin crédito fiscal y cuánto IGV se podría recuperar")
+            with st.container(key="card_escapa"):
+                st.markdown("#### Dónde se te escapa más dinero")
+                st.table(vista_d, border="horizontal", hide_index=True,
+                         alt="Compras sin crédito fiscal y cuánto IGV se podría recuperar")
 
         st.markdown("#### Recomendaciones")
         cols = st.columns(2)
@@ -650,12 +717,22 @@ with t_diag:
                 st.markdown(f"{ICONO_TEMA.get(rec['tema'], ':material/lightbulb:')} **{rec['titulo']}**{monto_txt}")
                 st.caption(rec["detalle"])
 
-        st.markdown("#### Aprende")
-        c_req, c_tal, c_liq = st.tabs(["¿Qué compras me sirven para descontar IGV?", "¿Mi talonario sirve?",
-                                       "Liquidación de compra"])
-        c_req.markdown(REQUISITOS_CREDITO)
-        c_tal.markdown(TALONARIOS)
-        c_liq.markdown(LIQUIDACION)
+        with st.container(key="card_dudas"):
+            st.markdown("#### :material/help: Dudas comunes, explicadas en simple")
+            c_req, c_tal, c_liq = st.tabs(["¿Qué compras me sirven para descontar IGV?", "¿Mi talonario sirve?",
+                                           "Liquidación de compra"])
+            c_req.markdown(REQUISITOS_CREDITO)
+            c_tal.markdown(TALONARIOS)
+            c_liq.markdown(LIQUIDACION)
+
+        st.write("")
+        with st.container(key="ayuda_diag"):
+            a1, a2 = st.columns([5, 2], vertical_alignment="center")
+            a1.markdown("**:material/support_agent: ¿Necesitas ayuda con algo más específico?** Contáctate con "
+                        "nuestros contadores aliados: encuentras sus perfiles y servicios en la pestaña "
+                        "**Servicios PRO**.")
+            a2.button("Ver Servicios PRO", icon=":material/arrow_forward:", width="stretch", key="btn_ir_pro_diag",
+                      on_click=ir_a_pro)
 
 # ================================================================ pestaña 3: para tu contador
 with t_cont:
@@ -690,10 +767,11 @@ with t_cont:
             st.markdown("**:material/chat: Mensaje para el dueño (WhatsApp)**  \nSi eres el contador, cópialo y envíalo.")
             st.code(mensaje_dueno(res, con), language=None, wrap_lines=True)
 
-# ================================================================ pestaña 4: contadores aliados
+# ================================================================ pestaña 4: servicios PRO
 with t_ali:
-    st.markdown("La app revisa tus números; **las decisiones las toma un contador colegiado**. ValidaSire te conecta "
-                "con contadores aliados para estos servicios:")
+    st.markdown("### :material/workspace_premium: Servicios PRO\n"
+                "ValidaSIRE ofrece estos servicios **en coordinación con contadores aliados colegiados**, para mayor "
+                "seguridad: la app hace la revisión y el contador firma y presenta las correcciones.")
     SERVICIOS = [
         (":material/savings:", "Recupera tu crédito",
          "Revisamos tus últimos 12 meses (el crédito se puede anotar hasta 12 meses después) y encontramos facturas y "
@@ -710,33 +788,35 @@ with t_ali:
     ]
     cols = st.columns(3)
     for i, (icono, titulo, texto, precio) in enumerate(SERVICIOS):
-        with cols[i].container(key=f"rec_t{i}_serv", height="stretch"):
+        with cols[i].container(key=f"serv_{i}", height="stretch"):
             st.markdown(f"{icono} **{titulo}**")
             st.caption(texto)
             st.markdown(precio)
     st.caption("Precios referenciales de la propuesta. Siguiente paso: que el contador aliado emita cada mes tus "
                "liquidaciones de compra a pescadores y productores sin RUC. " + AVISO_DEMO)
 
-    with st.expander(f"Ver contadores aliados ({len(ALIADOS['aliados'])})", icon=":material/groups:"):
-        st.warning(ALIADOS["aviso"], icon=":material/info:")
-        for a in ALIADOS["aliados"]:
-            with st.container(border=True):
-                f1, f2, f3 = st.columns([1, 4, 1.4], vertical_alignment="center")
-                with f1:
-                    avatar(a)
-                f2.markdown(f"**{a['nombre']}** · :blue-badge[Perfil de ejemplo]  \n"
-                            f"{a['experiencia']}  \n"
-                            f":material/school: {a['universidad']} · Matrícula {a['matricula']}  \n"
-                            f":material/location_on: {a['region']}")
-                f2.markdown(" ".join(f":blue-badge[{e}]" for e in a["especialidades"]))
-                if f3.button("Contactar (demo)", key=f"contacto_{a['id']}", icon=":material/call:",
-                             width="stretch"):
-                    st.toast(f"En la versión real, {a['nombre']} te escribiría por la app. " + AVISO_DEMO,
-                             icon=":material/info:")
+    st.write("")
+    st.markdown(f"#### :material/groups: Nuestros contadores aliados ({len(ALIADOS['aliados'])})")
+    st.warning(ALIADOS["aviso"], icon=":material/info:")
+    for a in ALIADOS["aliados"]:
+        with st.container(key=f"aliado_{a['id']}"):
+            f1, f2, f3 = st.columns([1, 4, 1.4], vertical_alignment="center")
+            with f1:
+                avatar(a)
+            f2.markdown(f"**{a['nombre']}** · :blue-badge[Perfil de ejemplo]  \n"
+                        f"{a['experiencia']}  \n"
+                        f":material/school: {a['universidad']} · Matrícula {a['matricula']}  \n"
+                        f":material/location_on: {a['region']}")
+            f2.markdown(" ".join(f":blue-badge[{e}]" for e in a["especialidades"]))
+            if f3.button("Contactar (demo)", key=f"contacto_{a['id']}", icon=":material/call:",
+                         width="stretch", type="primary"):
+                st.toast(f"En la versión real, {a['nombre']} te escribiría por la app. " + AVISO_DEMO,
+                         icon=":material/info:")
 
-    with st.container(border=True):
+    st.write("")
+    with st.container(key="union_pestana"):
         mostrar_union(clave="pestana")
 
 st.divider()
-st.caption("Datos de ejemplo 100 % ficticios. ValidaSire es un proyecto independiente: no es un producto de SUNAT ni "
+st.caption("Datos de ejemplo 100 % ficticios. ValidaSIRE es un proyecto independiente: no es un producto de SUNAT ni "
            "está afiliado a ella, y no reemplaza la asesoría de un contador. Mascota Don Cuy © Britney Miranda Gutiérrez.")

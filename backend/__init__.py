@@ -1,1 +1,1 @@
-"""ValidaSire: lógica de negocio (OCR, extracción, conciliación con el SIRE y cálculo de IGV)."""
+"""ValidaSIRE: lógica de negocio (OCR, extracción, conciliación con el SIRE y cálculo de IGV)."""

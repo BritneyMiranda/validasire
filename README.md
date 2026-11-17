@@ -1,6 +1,6 @@
-# ValidaSire
+# ValidaSIRE
 
-<img src="assets/mascota/portada.png" alt="Don Cuy, la mascota de ValidaSire" width="150" align="right">
+<img src="assets/mascota/portada.png" alt="Don Cuy, la mascota de ValidaSIRE" width="150" align="right">
 
 > **Hacemos que los dueños de restaurantes MYPE revisen su IGV del mes en 5 minutos, mediante la lectura automática de sus facturas de compra y su conciliación contra la propuesta del SIRE, con la tasa especial del rubro.**
 
@@ -64,7 +64,7 @@ Con la tasa especial de restaurantes (8 % IGV + 2,5 % IPM = 10,5 % en 2026) y co
 3. Recibe **qué falta, qué sobra y qué hacer** en compras y en ventas, con el producto de cada comprobante, y el **IGV a pagar** con y sin la revisión, calculado con código determinista. La mascota, Don Cuy, le dice si puede aceptar la propuesta ("¡Cuy-dado perfecto!") o si debe revisarla primero ("¡Ojo con el SIRE!").
 4. En otra pestaña recibe un **diagnóstico del negocio**: cuánto IGV podría recuperar al mes y al año, en qué compras (boletas de empresas que deberían darle factura, hielo o bolsas sin comprobante), dónde **no** hay IGV que recuperar porque el producto fresco está exonerado (pero sí costo que sustentar para Renta), cuándo aplica la **liquidación de compra**, si sus **talonarios** sirven, qué requisitos debe cumplir un comprobante para dar crédito, y recomendaciones de orden priorizadas.
 5. En la pestaña **Para tu contador** descarga el expediente en **Excel** (con las fórmulas), la lista final de compras con crédito para complementar o reemplazar la propuesta, un resumen y un mensaje de WhatsApp para el dueño.
-6. En la pestaña **Contadores aliados** puede pedir *Recupera tu crédito*, *Cierre anual* o *Consejería* a un contador de la red (perfiles de ejemplo en el demo), y un contador puede postular para ser aliado. En la barra lateral están los planes y la prueba gratis.
+6. En la pestaña **Servicios PRO** puede pedir *Recupera tu crédito*, *Cierre anual* o *Consejería* a un contador de la red (perfiles de ejemplo en el demo), y un contador puede postular para ser aliado. En la barra lateral están los planes y la prueba gratis.
 
 **Normativa al día.** Las tasas, la UIT y los topes viven en [data/normativa/parametros.json](data/normativa/parametros.json), con la fecha de la última revisión, que la app muestra ("Con información tributaria actualizada al 15/11/2026"). Cada lunes, un monitor ([scripts/monitor_normativa.py](scripts/monitor_normativa.py), en GitHub Actions) lee el índice oficial de Resoluciones de Superintendencia de SUNAT, filtra las normas nuevas sobre IGV, SIRE, comprobantes, liquidación de compra, etc., y abre un issue para revisarlas. **Ningún cambio de tasa se aplica solo:** una persona lee la norma, actualiza el JSON y los tests deben pasar. Si pasan más de 45 días sin revisión, la app lo advierte.
 
@@ -167,15 +167,15 @@ El dueño la usa una vez al mes y paga poco; el contador paga por lo que usa ("p
 
 ### Red de contadores aliados
 
-ValidaSire conecta; **la asesoría la da un contador colegiado**. El cliente paga el servicio por la app y el contador recibe el **80 %** (ValidaSire, **20 %** de comisión). Los contadores postulan desde la app ("¿Eres contador? Únete a nuestros aliados"), sin pago mensual por aparecer.
+ValidaSIRE conecta; **la asesoría la da un contador colegiado**. El cliente paga el servicio por la app y el contador recibe el **80 %** (ValidaSIRE, **20 %** de comisión). Los contadores postulan desde la app ("¿Eres contador? Únete a nuestros aliados"), sin pago mensual por aparecer.
 
-| Servicio | Qué incluye | Precio referencial | Para ValidaSire |
+| Servicio | Qué incluye | Precio referencial | Para ValidaSIRE |
 |---|---|---|---|
 | **Recupera tu crédito** | Revisión de los últimos 12 meses: facturas y notas de crédito que no se anotaron | **15 % de lo recuperado**; si no se recupera nada, no se paga | 20 % de ese 15 % |
 | **Cierre anual** | 12 meses ya revisados, renta anual estimada, pagos a cuenta, saldo a favor y declaración anual | **S/ 290 por año** | S/ 58 |
 | **Consejería** (incluye esquelas de SUNAT) | Videollamada de 30 min; si llega una esquela, la app la explica en simple antes | **S/ 49 por consulta** o **S/ 79 al mes** (2 consultas + esquelas) | S/ 9.80 / S/ 15.80 al mes |
 
-**Siguiente paso, no oferta actual:** que el contador aliado emita cada mes las liquidaciones de compra a pescadores y productores sin RUC (requiere su acceso al SOL del cliente; ValidaSire nunca pide la Clave SOL).
+**Siguiente paso, no oferta actual:** que el contador aliado emita cada mes las liquidaciones de compra a pescadores y productores sin RUC (requiere su acceso al SOL del cliente; ValidaSIRE nunca pide la Clave SOL).
 
 ### Costos y margen
 
@@ -213,7 +213,7 @@ Usé **Claude Code** como co-founder técnico. Lo que hizo:
 - **Mejoró el caso sintético:** detectó que, en la primera versión, la factura faltante tenía el RUC del cliente mal digitado, lo que en la práctica **no** da crédito en el mes (hay que anularla y reemitirla). La cambió por una factura física de contingencia y movió el caso del RUC errado a una alerta propia. También regeneró las imágenes porque las razones sociales largas se montaban sobre el recuadro de la serie.
 - **Investigó y verificó parámetros:** tasas 2026-2027 (Leyes 31556, 32219 y 32387), Apéndice I prorrogado a 2028 (Ley 32542) y cambios de 2026 en la liquidación de compra (RS 000047-2026/SUNAT). Quedaron en `data/normativa/parametros.json` con su fuente. Al verificar el Apéndice I detectó que el caso cobraba IGV por limón y verduras (exonerados) y cambió esas descripciones por productos gravados.
 - **Construyó el diagnóstico y el monitor de normativa** a partir de mis notas de entrevistas: requisitos del crédito fiscal, talonarios, liquidación de compra, exportación a Excel y el scraping del índice de SUNAT.
-- **Rediseñó la app con mis comentarios de prueba:** nombre ValidaSire, mi mascota en los mensajes de resultado, casos especiales antes de subir archivos, compras y ventas separadas (RCE y RVIE), producto en cada hallazgo, cifras explicadas en lenguaje simple, diagnóstico y descargas en pestañas propias. Al preparar las imágenes de la mascota quitó el fondo y **borró el logo de SUNAT del chaleco**, para que la app no parezca un producto oficial.
+- **Rediseñó la app con mis comentarios de prueba:** nombre ValidaSIRE, mi mascota en los mensajes de resultado, casos especiales antes de subir archivos, compras y ventas separadas (RCE y RVIE), producto en cada hallazgo, cifras explicadas en lenguaje simple, diagnóstico y descargas en pestañas propias. Al preparar las imágenes de la mascota quitó el fondo y **borró el logo de SUNAT del chaleco**, para que la app no parezca un producto oficial.
 - **Redactó** este README y la guía de entrevistas.
 
 Lo que hice yo: elegir el problema y el usuario, acotar el alcance a un solo flujo, decidir que el LLM no calcula impuestos, realizar las entrevistas, revisar el código y las cifras, y desplegar.
@@ -233,6 +233,6 @@ scripts/        generación de comprobantes, evaluación y capturas
 tests/          pytest
 ```
 
-**Aviso:** ValidaSire es un proyecto independiente, no es un producto de SUNAT ni está afiliado a ella. Es una herramienta de revisión y no reemplaza la asesoría de un contador. Información tributaria actualizada al 15/11/2026; verifícala antes de declarar.
+**Aviso:** ValidaSIRE es un proyecto independiente, no es un producto de SUNAT ni está afiliado a ella. Es una herramienta de revisión y no reemplaza la asesoría de un contador. Información tributaria actualizada al 15/11/2026; verifícala antes de declarar.
 
 **Licencia:** el código está bajo licencia MIT. **La mascota Don Cuy (imágenes en `assets/mascota/`) es © Britney Daily Miranda Gutiérrez, todos los derechos reservados**, y no está incluida en la licencia MIT.

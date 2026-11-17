@@ -387,6 +387,6 @@ def rce_ajustado(conciliacion: pd.DataFrame) -> pd.DataFrame:
         filas.append({"tipo": r.get("tipo", "Factura"), "serie_numero": r["serie_numero"],
                       "ruc_proveedor": r["ruc_proveedor"], "proveedor": r["proveedor"],
                       "doc_referencia": r.get("doc_referencia", ""), "igv": r["credito_revisado"],
-                      "origen": "agregado por ValidaSire" if r["estado"] in ("FALTA_EN_PROPUESTA", "NC_FALTA_EN_PROPUESTA")
+                      "origen": "agregado por ValidaSIRE" if r["estado"] in ("FALTA_EN_PROPUESTA", "NC_FALTA_EN_PROPUESTA")
                       else "propuesta SUNAT"})
     return pd.DataFrame(filas)
