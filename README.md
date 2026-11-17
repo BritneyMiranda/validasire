@@ -4,7 +4,7 @@
 
 > **Hacemos que los dueños de MYPE revisen su SIRE antes de aceptar la propuesta de SUNAT, mediante la lectura automática de sus facturas de compra y la conciliación de sus compras (RCE) y ventas (RVIE), con la tasa general de IGV o la tasa especial de restaurantes, hoteles y alojamientos turísticos.**
 
-**Demo:** https://validasire.streamlit.app (abre con el caso de ejemplo: https://validasire.streamlit.app/?demo=1) · **Video de respaldo:** _[link al video de 60-90 s]_ · **Corre en local:** ver [Cómo correrlo](#cómo-correrlo)
+**Demo:** https://validasire.streamlit.app (abre con el caso de ejemplo: https://validasire.streamlit.app/?demo=1) · **Video de respaldo:** [ver en Google Drive](https://drive.google.com/drive/folders/11-75Zwp9Up06nbLacNpzjf7bgNuS6qHg?usp=sharing) · **Corre en local:** ver [Cómo correrlo](#cómo-correrlo)
 
 ![Resultado de la revisión](docs/capturas/3_resultado.png)
 
@@ -89,7 +89,7 @@ Con la tasa especial de restaurantes (8 % IGV + 2,5 % IPM = 10,5 % en 2026) y co
 
 ## 6. Demo
 
-**URL:** https://validasire.streamlit.app · **Caso de ejemplo directo:** `/?demo=1` · **Video:** _[link]_
+**URL:** https://validasire.streamlit.app · **Caso de ejemplo directo:** `/?demo=1` · **Video de respaldo:** [ver en Google Drive](https://drive.google.com/drive/folders/11-75Zwp9Up06nbLacNpzjf7bgNuS6qHg?usp=sharing)
 
 | 1. Tu negocio y casos especiales | 2. Compras leídas por el OCR | 3. Resultado |
 |---|---|---|

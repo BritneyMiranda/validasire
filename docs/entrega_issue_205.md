@@ -6,5 +6,5 @@ Startup y one-liner: ValidaSIRE — Hacemos que los dueños de MYPE revisen su S
 Link del demo (URL pública, o "corre en local"): https://validasire.streamlit.app/?demo=1
 Link del repo: https://github.com/BritneyMiranda/validasire
 Herramientas del curso que usa: Document AI con PaddleOCR (sesión 10), LLMs con salidas estructuradas (sesión 08), dashboards (sesión 05), scraping del índice de normas de SUNAT (sesión 03), despliegue y evaluación (sesión 12)
-Video de respaldo: [link]
+Video de respaldo: https://drive.google.com/drive/folders/11-75Zwp9Up06nbLacNpzjf7bgNuS6qHg?usp=sharing
 ```
