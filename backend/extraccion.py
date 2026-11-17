@@ -29,6 +29,7 @@ RE_SERIE = re.compile(r"^\s*(?:N[°ºo.]*\s*)?([FBE][A-Z0-9]{3}|\d{4})\s*-\s*(\d
 RE_FECHA_ISO = re.compile(r"(20\d{2})-(\d{2})-(\d{2})")
 RE_FECHA_PE = re.compile(r"(\d{2})/(\d{2})/(20\d{2})")
 RE_MONTO = re.compile(r"S\s*/\.?\s*([\d,]+\.\d{2})")
+RE_REFERENCIA = re.compile(r"(?:modifica|referencia|afectad[oa])\D{0,25}?([FBE][A-Z0-9]{3}|\d{4})\s*-\s*(\d{3,8})", re.I)
 
 ETIQUETAS = {
     "base_gravada": re.compile(r"op\.?\s*gravada|valor\s+de\s+venta|sub\s*-?\s*total", re.I),
@@ -64,10 +65,13 @@ def extraer_con_reglas(ocr: ResultadoOCR) -> Comprobante:
     cajas = ocr.cajas
     texto = " \n".join(c.texto for c in cajas)
 
-    if re.search(r"boleta", texto, re.I):
-        tipo = "Boleta"
-    elif re.search(r"nota\s+de\s+cr[eé]dito", texto, re.I):
+    # Las notas primero: una nota de crédito suele mencionar la factura o boleta que modifica.
+    if re.search(r"nota\s+de\s+cr[eé]dito", texto, re.I):
         tipo = "Nota de credito"
+    elif re.search(r"nota\s+de\s+d[eé]bito", texto, re.I):
+        tipo = "Nota de debito"
+    elif re.search(r"boleta", texto, re.I):
+        tipo = "Boleta"
     elif re.search(r"factura", texto, re.I):
         tipo = "Factura"
     else:
@@ -79,9 +83,17 @@ def extraer_con_reglas(ocr: ResultadoOCR) -> Comprobante:
         if m:
             serie = f"{m.group(1).upper()}-{m.group(2)}"
             break
+    referencia = None
+    if tipo.startswith("Nota") and (m := RE_REFERENCIA.search(texto)):
+        referencia = f"{m.group(1).upper()}-{m.group(2)}"
     if tipo == "Otro" and serie:
-        # Series electrónicas de SUNAT: facturas F### o E001; boletas B### o EB01.
-        if serie.startswith(("EB", "B")):
+        # Series electrónicas de SUNAT: facturas F### o E001; boletas B### o EB01. Por costumbre,
+        # muchas notas de crédito usan FC## / BC## y las de débito FD## / BD## (no es obligatorio).
+        if serie.startswith(("FC", "BC")):
+            tipo = "Nota de credito"
+        elif serie.startswith(("FD", "BD")):
+            tipo = "Nota de debito"
+        elif serie.startswith(("EB", "B")):
             tipo = "Boleta"
         elif serie.startswith(("F", "E0")):
             tipo = "Factura"
@@ -131,6 +143,7 @@ def extraer_con_reglas(ocr: ResultadoOCR) -> Comprobante:
     return Comprobante(
         tipo_comprobante=tipo,
         serie_numero=serie,
+        doc_referencia=referencia,
         fecha_emision=fecha,
         ruc_emisor=ruc_emisor,
         razon_social_emisor=razon,
@@ -199,7 +212,9 @@ def validar(c: Comprobante, ruc_propio: str, tasa_compras: float = 0.18) -> list
             obs.append("Base + IGV no cuadra con el total.")
         if abs(c.base_gravada * tasa_compras - c.igv) > 1.0:
             obs.append(f"El IGV no es {tasa_compras:.0%} de la base: revisa si hay montos exonerados.")
-    if c.tipo_comprobante == "Factura":
+    if c.tipo_comprobante.startswith("Nota") and not c.doc_referencia:
+        obs.append("No se leyó qué comprobante modifica esta nota.")
+    if c.tipo_comprobante in ("Factura", "Nota de credito", "Nota de debito"):
         if not c.ruc_cliente:
             obs.append("No se leyó el RUC del cliente.")
         elif c.ruc_cliente != ruc_propio:

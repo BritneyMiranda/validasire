@@ -34,6 +34,9 @@ def reporte_contador(r: Resumen, con: pd.DataFrame, ruc: str, con_ventas: pd.Dat
 | Crédito fiscal revisado | {r.credito_fiscal_revisado:,.2f} |
 | IGV a pagar si se acepta la propuesta | {r.igv_a_pagar_si_acepta_propuesta:,.2f} |
 | **IGV a pagar revisado** | **{r.igv_a_pagar_revisado:,.2f}** |
+| Notas de crédito de compras (ya restadas del crédito) | {r.ajuste_notas_credito:,.2f} |
+| IGV en descuentos sin nota de crédito (pedirla al proveedor) | {r.igv_descuentos_sin_nota:,.2f} |
+| Base de ventas según la propuesta del RVIE | {r.base_ventas_propuesta:,.2f} |
 | Saldo a favor (revisado) | {r.saldo_a_favor_revisado:,.2f} |
 | Pago a cuenta de renta RMT ({r.tasa_pago_a_cuenta:.1%}) | {r.pago_a_cuenta_renta:,.2f} |
 
@@ -57,6 +60,12 @@ def mensaje_dueno(r: Resumen, con: pd.DataFrame) -> str:
         partes.append(f"Hay facturas tuyas que SUNAT no tenía (crédito {_s(r.credito_recuperado)}): las agregamos.")
     if r.credito_indebido_evitado:
         partes.append(f"La propuesta incluye compras que no son del negocio ({_s(r.credito_indebido_evitado)} de IGV): las sacamos para evitar una multa.")
+    if r.ajuste_notas_credito:
+        partes.append(f"Las devoluciones y descuentos con nota de crédito bajan tu crédito en {_s(-r.ajuste_notas_credito)}.")
+    if r.igv_descuentos_sin_nota:
+        partes.append(f"Te hicieron descuentos sin nota de crédito ({_s(r.igv_descuentos_sin_nota)} de IGV): pide la nota al proveedor.")
+    if abs(r.base_ventas_propuesta - r.base_ventas) > 0.01:
+        partes.append(f"Tus ventas reales son {_s(r.base_ventas)} y SUNAT tiene {_s(r.base_ventas_propuesta)}: revisa las notas de crédito que emitiste.")
     if r.igv_referencial_perdido_por_boletas:
         partes.append(f"Por comprar con boleta dejaste de recuperar {_s(r.igv_referencial_perdido_por_boletas)}. Pide factura a tu RUC.")
     partes.append(f"IGV a pagar: {_s(r.igv_a_pagar_revisado)} (si aceptabas la propuesta tal cual: {_s(r.igv_a_pagar_si_acepta_propuesta)}).")

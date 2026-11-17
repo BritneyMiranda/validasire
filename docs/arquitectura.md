@@ -33,6 +33,6 @@ flowchart LR
 | Ventas | `backend/ventas.py` | Compara el reporte del POS contra la propuesta del RVIE (boletas por resumen diario). |
 | Diagnóstico | `backend/diagnostico.py` | IGV recuperable, exonerados, renta por costos sin sustento, recomendaciones y Excel. |
 | Normativa | `data/normativa/parametros.json`, `scripts/monitor_normativa.py` | Tasas con fecha de revisión; monitor semanal del índice de SUNAT (GitHub Actions). |
-| Calidad | `tests/`, `scripts/evaluar_extraccion.py` | 21 tests y evaluación por campo contra la verdad terreno. |
+| Calidad | `tests/`, `scripts/evaluar_extraccion.py` | 29 tests y evaluación por campo contra la verdad terreno. |
 
 El LLM solo lee los comprobantes: ningún impuesto se calcula con IA.

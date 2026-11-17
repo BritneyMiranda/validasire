@@ -333,4 +333,7 @@ def a_excel(ruta_o_buffer, compras: pd.DataFrame, con: pd.DataFrame, res: Resume
             "Costo sin sustento (RMT) = monto sin comprobante (sin IGV si es gravado)",
             "Impacto Renta estimado = costo sin sustento x 10 % (primer tramo RMT)",
             "Impacto 2027 = base de ventas x (15 % - 10.5 %)",
+            "Nota de credito = resta: en compras baja el credito fiscal; en ventas baja la base (montos en negativo)",
+            "Nota de debito = suma: en compras sube el credito fiscal; en ventas sube la base",
+            "IGV de un descuento sin nota = (total de la factura - notas - pagado) x IGV / total",
         ]}).to_excel(xw, sheet_name="Formulas", index=False)

@@ -63,9 +63,11 @@ def dibujar(r: dict) -> Image.Image:
     d.text((40, y + 6), f"RUC: {r['ruc_proveedor']}", font=n, fill=NEGRO)
     d.text((40, y + 40), "Av. Ejemplo 123, Lima - DOCUMENTO FICTICIO", font=s, fill=GRIS)
 
-    titulo = "FACTURA" if fisica else ("BOLETA DE VENTA ELECTRONICA" if boleta else "FACTURA ELECTRONICA")
+    nota = r["tipo_comprobante"] == "Nota de credito"
+    titulo = ("NOTA DE CREDITO ELECTRONICA" if nota else "FACTURA" if fisica
+              else ("BOLETA DE VENTA ELECTRONICA" if boleta else "FACTURA ELECTRONICA"))
     d.rectangle([520, 40, W - 40, 175], outline=NEGRO, width=2)
-    tf = fuente(True, 19) if boleta else nb
+    tf = fuente(True, 19) if (boleta or nota) else nb
     d.text((535, 52), titulo, font=tf, fill=NEGRO)
     d.text((535, 88), f"RUC {r['ruc_proveedor']}", font=n, fill=NEGRO)
     d.text((535, 124), r["serie_numero"], font=nb, fill=ROJO if fisica else NEGRO)
@@ -80,6 +82,10 @@ def dibujar(r: dict) -> Image.Image:
     else:
         d.text((40, y + 37), f"Senor(es): {CLIENTE}", font=n, fill=NEGRO)
         d.text((40, y + 74), f"RUC: {r['ruc_cliente_en_comprobante']}", font=n, fill=NEGRO)
+    if nota:
+        d.text((40, y + 111), f"Documento que modifica: {r['doc_referencia']}", font=nb, fill=NEGRO)
+        d.text((40, y + 148), f"Motivo: {r['motivo']}", font=n, fill=NEGRO)
+        y += 74
 
     y += 120
     d.line([40, y, W - 40, y], fill=NEGRO, width=2)
@@ -115,6 +121,15 @@ def como_foto(img: Image.Image) -> Image.Image:
     return fondo.filter(ImageFilter.GaussianBlur(0.9))
 
 
+def notas() -> None:
+    """Notas de crédito del caso con devoluciones y descuentos (carpeta aparte: no cambian el caso base)."""
+    destino = DIR / "notas"
+    with (destino / "notas_compras.csv").open(encoding="utf-8-sig") as f:
+        for r in csv.DictReader(f):
+            dibujar(r).save(destino / f"{r['id']}_{r['serie_numero']}.png")
+    print("Notas generadas en", destino)
+
+
 def main() -> None:
     destino = DIR / "comprobantes"
     destino.mkdir(parents=True, exist_ok=True)
@@ -131,4 +146,6 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    import sys
+
+    notas() if "--notas" in sys.argv else (main(), notas())

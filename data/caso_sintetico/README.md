@@ -29,6 +29,19 @@
 
 **Cambio respecto de la primera versión:** antes, D1 era una factura electrónica con el RUC del cliente mal digitado. Esa factura no da crédito en el mes, porque está emitida a otro RUC: el proveedor tiene que anularla y emitir una nueva. Por eso la cambiamos por una factura de contingencia, que sí es crédito del mes. La app igual detecta el caso del RUC errado como alerta (`RUC_CLIENTE_ERRADO`).
 
+## Variante: devoluciones y descuentos (`notas/`)
+
+Botón **"Mismo caso, con devoluciones y descuentos"** en la app. Es el caso base más:
+
+| Qué | Archivo | Qué debe detectar la app |
+|---|---|---|
+| Devolución de 10 kg de pulpo: nota de crédito `FC01-000087` (IGV S/ 90) que modifica `F001-004512` | `notas/C16_FC01-000087.png` (la lee el OCR) y en `propuesta_rce_con_notas.csv` | Resta S/ 90 de crédito; une la nota con su factura (IGV neto S/ 594) |
+| Descuento de bebidas: nota `FC01-000215` (IGV S/ 36) que solo está en la propuesta | `propuesta_rce_con_notas.csv` (viene en positivo a propósito: la app corrige el signo) | "Nota de crédito sin tu copia": se queda y resta |
+| Pago de S/ 2,478 por la factura `F001-009120` de S/ 2,655, sin nota | `notas/pagos.csv` | "Descuento sin nota de crédito": IGV S/ 27 |
+| Nota de crédito de venta `FC01-000009` (−S/ 100) que SUNAT no tiene | `notas/ventas_registro_con_notas.csv` (la propuesta del RVIE no la trae) | En ventas: "SUNAT no la tiene"; ventas reales S/ 51,900 |
+
+Cifras esperadas (calculadas a mano en `notas/resultado_esperado_notas.json`): **S/ 1,960.80** si se acepta la propuesta y **S/ 1,590.30** revisado.
+
 ## Resultado esperado
 
 | Concepto | Soles |

@@ -1,0 +1,21 @@
+{
+  "descripcion": "Caso con devoluciones y descuentos: el caso base + 3 notas de credito + 1 descuento sin nota. Cifras calculadas a mano.",
+  "base_ventas_revisada": 51900.00,
+  "base_ventas_segun_rvie": 52000.00,
+  "igv_debito_revisado": 5449.50,
+  "igv_debito_segun_propuesta": 5460.00,
+  "credito_fiscal_revisado": 3859.20,
+  "credito_fiscal_segun_propuesta": 3499.20,
+  "igv_a_pagar_revisado": 1590.30,
+  "igv_a_pagar_si_acepta_propuesta": 1960.80,
+  "diferencia_pago_de_mas": 370.50,
+  "ajuste_notas_credito_compras": -126.00,
+  "igv_descuento_sin_nota": 27.00,
+  "calculo": [
+    "Credito revisado = 3985.20 (caso base) - 90 (NC FC01-000087 devolucion de pulpo) - 36 (NC FC01-000215 de bebidas, solo en la propuesta) = 3859.20",
+    "Credito propuesta = 3625.20 (caso base) - 90 - 36 = 3499.20",
+    "Ventas revisadas = 52000 - 100 (NC de venta FC01-000009 que SUNAT no tiene) = 51900; x 10.5 % = 5449.50",
+    "Ventas segun RVIE = 52000; x 10.5 % = 5460.00",
+    "Descuento sin nota: factura F001-009120 de 2655 pagada con 2478 -> 177 sin nota, IGV 177 x 405/2655 = 27.00"
+  ]
+}

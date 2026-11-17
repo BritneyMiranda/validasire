@@ -18,6 +18,20 @@ def archivos_demo() -> list[Path]:
     return [p for p in archivos if p.name != "C07_0001-004689.png"]
 
 
+DIR_NOTAS = DIR / "notas"
+
+
+def archivos_notas() -> list[Path]:
+    """Notas de crédito extra del caso 'con devoluciones y descuentos'."""
+    return sorted(DIR_NOTAS.glob("C*.png"))
+
+
+def pagos_notas() -> dict[str, float]:
+    """Lo que de verdad se pagó por factura (serie-número -> soles), según el estado de cuenta."""
+    df = pd.read_csv(DIR_NOTAS / "pagos.csv", dtype={"serie_numero": str})
+    return dict(zip(df["serie_numero"], df["pagado"].astype(float)))
+
+
 def base_ventas() -> float:
     return float(pd.read_csv(DIR / "ventas_resumen.csv")["base_gravada"].sum())
 

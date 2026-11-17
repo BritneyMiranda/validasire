@@ -94,7 +94,33 @@ ETIQUETA_ESTADO = {
     "RUC_CLIENTE_ERRADO": "✕ Factura a otro RUC",
     "SIN_CREDITO": "• Boleta: no descuenta IGV",
     "ES_VENTA": "⇄ Es una venta, no una compra",
+    "NC_FALTA_EN_PROPUESTA": "▲ Nota de crédito que SUNAT no tiene",
+    "NOTA_SIN_COPIA": "• Nota de crédito sin tu copia",
+    "DESCUENTO_SIN_NOTA": "✕ Descuento sin nota de crédito",
 }
+
+
+def igv_en_juego(r) -> float:
+    if r["estado"] == "DIFERENCIA_MONTO":
+        return abs(r["igv_comprobante"] - r["igv_propuesta"])
+    if r["estado"] == "DESCUENTO_SIN_NOTA":
+        return r["igv_descuento"]
+    return max(abs(r["igv_comprobante"]), abs(r["igv_propuesta"]))
+
+
+def producto(r) -> str:
+    if r["descripcion"]:
+        return r["descripcion"]
+    if r["estado"] == "NOTA_SIN_COPIA":
+        return "— (devolución o descuento informado por el proveedor)"
+    if r["estado"] in ("SOBRA_EN_PROPUESTA", "DUPLICADO_EN_PROPUESTA"):
+        return "— (SUNAT no informa el detalle; no subiste el comprobante)"
+    return "—"
+
+
+def comprobante(r) -> str:
+    sufijo = {"Nota de credito": " (nota de crédito)", "Nota de debito": " (nota de débito)"}.get(r.get("tipo"), "")
+    return f"{r['serie_numero']}{sufijo}"
 ICONO_TEMA = {"Dinero": ":material/savings:", "Riesgo": ":material/warning:", "Renta": ":material/account_balance:",
               "Orden": ":material/folder_open:", "Futuro": ":material/event_upcoming:"}
 MESES = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Setiembre",
@@ -129,16 +155,23 @@ ss.setdefault("ventas_df", None)     # reporte de ventas del POS
 ss.setdefault("rvie_df", None)       # propuesta RVIE (ventas)
 ss.setdefault("ventas_base", None)
 ss.setdefault("es_caso", False)
+ss.setdefault("pagos", {})           # serie-número -> lo que de verdad se pagó
 ss.setdefault("sin_comprobante", SIN_COMPROBANTE_VACIO)
 
 
-def cargar_caso(rapido: bool) -> None:
+def cargar_caso(rapido: bool, con_notas: bool = False) -> None:
+    """Caso base o, con con_notas, el mismo caso más devoluciones y descuentos (notas de crédito)."""
     ss.sin_comprobante = SIN_COMPROBANTE_CASO
-    ss.pop("editor_sin_comprobante", None)
-    ss.imagenes = {p.name: p.read_bytes() for p in caso.archivos_demo()}
-    ss.propuesta_df = pd.read_csv(caso.DIR / "propuesta_rce.csv", dtype=str)
-    ss.ventas_df = pd.read_csv(caso.DIR / "ventas_registro.csv", dtype=str)
+    for k in ("editor_sin_comprobante", "editor_compras"):
+        ss.pop(k, None)
+    archivos = caso.archivos_demo() + (caso.archivos_notas() if con_notas else [])
+    ss.imagenes = {p.name: p.read_bytes() for p in archivos}
+    ss.propuesta_df = pd.read_csv(caso.DIR_NOTAS / "propuesta_rce_con_notas.csv" if con_notas
+                                  else caso.DIR / "propuesta_rce.csv", dtype=str)
+    ss.ventas_df = pd.read_csv(caso.DIR_NOTAS / "ventas_registro_con_notas.csv" if con_notas
+                               else caso.DIR / "ventas_registro.csv", dtype=str)
     ss.rvie_df = pd.read_csv(caso.DIR / "propuesta_rvie.csv", dtype=str)
+    ss.pagos = caso.pagos_notas() if con_notas else {}
     ss.ventas_base = caso.base_ventas()
     ss.es_caso = True
     ss.extracciones = caso.cache() if rapido else []
@@ -251,6 +284,12 @@ with t_rev:
                  width="stretch", key="btn_caso"):
         cargar_caso(rapido)
         st.rerun()
+    if i2.button("Mismo caso, con devoluciones y descuentos", icon=":material/assignment_return:",
+                 width="stretch", key="btn_caso_notas",
+                 help="Agrega notas de crédito (una devolución de pulpo, un descuento de bebidas y una venta con descuento) "
+                      "y un pago menor a la factura sin nota de crédito."):
+        cargar_caso(rapido, con_notas=True)
+        st.rerun()
 
     # ------------------------------------------------ paso 1: compras
     with st.container(border=True):
@@ -269,17 +308,19 @@ with t_rev:
             if set(nuevos) != set(ss.imagenes) or ss.es_caso:
                 ss.imagenes, ss.extracciones, ss.es_caso = nuevos, [], False
 
-        if ss.imagenes and not ss.extracciones:
+        leidos = {e["archivo"] for e in ss.extracciones}
+        pendientes = [n for n in ss.imagenes if n not in leidos]
+        if pendientes:
             resultados = []
-            with st.status(f"Leyendo {len(ss.imagenes)} comprobantes…", expanded=True) as estado:
+            with st.status(f"Leyendo {len(pendientes)} comprobantes…", expanded=True) as estado:
                 barra = st.progress(0.0)
-                for i, (nombre, datos) in enumerate(ss.imagenes.items(), start=1):
-                    r = procesar(nombre, datos, ruc_propio, usar_claude)
+                for i, nombre in enumerate(pendientes, start=1):
+                    r = procesar(nombre, ss.imagenes[nombre], ruc_propio, usar_claude)
                     resultados.append(r)
-                    barra.progress(i / len(ss.imagenes), text=f"{nombre}: {r['comprobante']['serie_numero'] or '¿?'} "
+                    barra.progress(i / len(pendientes), text=f"{nombre}: {r['comprobante']['serie_numero'] or '¿?'} "
                                    f"· confianza {r['confianza_ocr']:.0%}")
                 estado.update(label=f"{len(resultados)} comprobantes leídos", state="complete", expanded=False)
-            ss.extracciones = resultados
+            ss.extracciones = ss.extracciones + resultados
 
         if ss.extracciones:
             filas = []
@@ -289,6 +330,8 @@ with t_rev:
                     "incluir": True, "archivo": e["archivo"], **{k: c[k] for k in (
                         "tipo_comprobante", "serie_numero", "fecha_emision", "ruc_emisor", "razon_social_emisor",
                         "ruc_cliente", "descripcion", "base_gravada", "igv", "total")},
+                    "doc_referencia": c.get("doc_referencia"),
+                    "pagado": ss.pagos.get(c["serie_numero"]),
                     "contingencia": c.get("contingencia", False),
                     "confianza": e["confianza_ocr"],
                     "revisar": "; ".join(e["observaciones"] + [f"Claude y reglas difieren en {', '.join(e['discrepancias_motores'])}"]
@@ -298,14 +341,20 @@ with t_rev:
             n_rev = int((tabla["revisar"] != "").sum())
             st.caption(f"Lectura: {tabla['confianza'].mean():.0%} de confianza media · {n_rev} fila(s) para revisar · "
                        f"motor: {ss.extracciones[0]['motor']}. Puedes corregir cualquier celda o desmarcar una compra "
-                       "que no es del negocio.")
+                       "que no es del negocio. Si pagaste menos que el total (descuento, devolución), escríbelo en "
+                       "**Pagado**: revisamos si hay nota de crédito.")
             compras = st.data_editor(
                 tabla, hide_index=True, key="editor_compras", height=300,
                 disabled=["archivo", "confianza", "revisar"],
                 column_config={
                     "incluir": st.column_config.CheckboxColumn("Del negocio", width="small"),
                     "archivo": st.column_config.TextColumn("Archivo", width="small"),
-                    "tipo_comprobante": st.column_config.SelectboxColumn("Tipo", options=["Factura", "Boleta", "Nota de credito", "Otro"]),
+                    "tipo_comprobante": st.column_config.SelectboxColumn(
+                        "Tipo", options=["Factura", "Boleta", "Nota de credito", "Nota de debito", "Otro"]),
+                    "doc_referencia": st.column_config.TextColumn(
+                        "Modifica a", help="Solo en notas de crédito o débito: el comprobante que corrigen."),
+                    "pagado": st.column_config.NumberColumn(
+                        "Pagado (S/)", format="%.2f", help="Lo que de verdad pagaste. Déjalo vacío si pagaste el total."),
                     "serie_numero": "Serie-número", "fecha_emision": "Fecha", "ruc_emisor": "RUC proveedor",
                     "razon_social_emisor": "Proveedor", "ruc_cliente": "RUC cliente", "descripcion": "Producto",
                     "base_gravada": st.column_config.NumberColumn("Base", format="%.2f"),
@@ -343,13 +392,15 @@ with t_rev:
         if ss.rvie_df is not None:
             v2.caption(f":material/check: Propuesta del RVIE cargada: {len(ss.rvie_df)} filas.")
 
-        base_ventas = 0.0
+        base_ventas, base_rvie = 0.0, None
         try:
             if ss.ventas_df is not None:
                 reg = cargar_ventas(ss.ventas_df)
                 base_ventas = base_revisada(reg)
                 if ss.rvie_df is not None:
-                    con_ventas = conciliar_ventas(reg, cargar_ventas(ss.rvie_df))
+                    rvie = cargar_ventas(ss.rvie_df)
+                    base_rvie = base_revisada(rvie)
+                    con_ventas = conciliar_ventas(reg, rvie)
         except ValueError as err:
             st.error(str(err), icon=":material/error:")
         if ss.ventas_df is None:
@@ -374,7 +425,8 @@ with t_rev:
                 st.error(str(err), icon=":material/error:")
                 st.stop()
             con = conciliar(compras, prop, ruc_propio)
-            res = calcular(con, base_ventas, anio, periodo, regimen, regimen_renta=regimen_renta)
+            res = calcular(con, base_ventas, anio, periodo, regimen, regimen_renta=regimen_renta,
+                           base_ventas_propuesta=base_rvie)
 
             err_rce = con[con["estado"].isin(ESTADOS_ERROR)]
             err_rvie = con_ventas[con_ventas["estado"] != "OK"] if con_ventas is not None else None
@@ -405,7 +457,7 @@ with t_rev:
             m1, m2, m3, m4 = st.columns(4)
             with m1:
                 st.metric("Si aceptas la propuesta", soles(res.igv_a_pagar_si_acepta_propuesta), border=True)
-                st.caption("Lo que pagarías con las compras que SUNAT tiene registradas.")
+                st.caption("Lo que pagarías con las compras y ventas que SUNAT tiene registradas.")
             with m2:
                 st.metric("Lo que te toca pagar", soles(res.igv_a_pagar_revisado), border=True,
                           delta=(f"{'-' if res.diferencia > 0 else '+'}{soles(abs(res.diferencia))} vs. la propuesta"
@@ -430,19 +482,28 @@ with t_rev:
             elif res.diferencia < 0:
                 st.markdown(f":material/lightbulb: **En resumen:** la propuesta te hace pagar **{soles(-res.diferencia)} de menos**, "
                             "pero con descuentos que no te corresponden: corrígela para evitar multas.")
+            if res.ajuste_notas_credito or res.igv_descuentos_sin_nota:
+                partes = []
+                if res.ajuste_notas_credito:
+                    partes.append(f"tus devoluciones y descuentos con nota de crédito bajan tu crédito en "
+                                  f"**{soles(-res.ajuste_notas_credito)}** (ya está descontado)")
+                if res.igv_descuentos_sin_nota:
+                    partes.append(f"hay **{soles(res.igv_descuentos_sin_nota)}** de IGV en descuentos que te hicieron "
+                                  "sin nota de crédito: pídela al proveedor")
+                st.markdown(":material/assignment_return: **Devoluciones y descuentos:** " + "; ".join(partes) + ".")
+            if base_rvie is not None and abs(base_rvie - base_ventas) > 0.01:
+                st.markdown(f":material/point_of_sale: **Ventas:** tu sistema dice {soles(base_ventas)} y la propuesta "
+                            f"del RVIE {soles(base_rvie)}. Lo que te toca pagar usa tus ventas reales.")
 
             # --- hallazgos de compras
             st.markdown("#### Compras (RCE): qué revisar")
-            hallazgos = con[con["estado"] != "OK"]
+            # Las notas de crédito/débito se muestran siempre: dicen cuánto queda neto de cada factura.
+            hallazgos = con[(con["estado"] != "OK") | con["tipo"].isin(["Nota de credito", "Nota de debito"])]
             ver_todo = st.toggle("Ver también las que están bien", value=False)
             vista = (con if ver_todo else hallazgos).copy()
-            vista["igv_en_juego"] = vista.apply(
-                lambda r: abs(r["igv_comprobante"] - r["igv_propuesta"]) if r["estado"] == "DIFERENCIA_MONTO"
-                else max(r["igv_comprobante"], r["igv_propuesta"]), axis=1)
-            vista["producto"] = vista.apply(
-                lambda r: r["descripcion"] or ("— (SUNAT no informa el detalle; no subiste el comprobante)"
-                                               if r["estado"] in ("SOBRA_EN_PROPUESTA", "DUPLICADO_EN_PROPUESTA") else "—"),
-                axis=1)
+            vista["igv_en_juego"] = vista.apply(igv_en_juego, axis=1)
+            vista["producto"] = vista.apply(producto, axis=1)
+            vista["serie_numero"] = vista.apply(comprobante, axis=1)
             st.table(
                 vista.assign(estado=lambda d: d["estado"].map(ETIQUETA_ESTADO),
                              igv_en_juego=lambda d: d["igv_en_juego"].map(lambda v: f"{v:,.2f}"))
@@ -461,6 +522,7 @@ with t_rev:
                             f"coinciden con la propuesta del RVIE (base {soles(base_ventas)}).")
             else:
                 st.table(err_rvie.assign(estado=lambda d: d["estado"].map(ETIQUETA_VENTA),
+                                         serie_numero=lambda d: d.apply(comprobante, axis=1),
                                          diferencia_base=lambda d: d["diferencia_base"].map(lambda v: f"{v:+,.2f}"))
                          [["estado", "serie_numero", "fecha_emision", "cliente", "diferencia_base", "que_hacer"]]
                          .rename(columns={"estado": "Estado", "serie_numero": "Comprobante", "fecha_emision": "Fecha",

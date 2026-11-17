@@ -1,0 +1,2 @@
+id,fecha,tipo_comprobante,serie_numero,doc_referencia,ruc_proveedor,proveedor,rubro,descripcion,base,igv,total,ruc_cliente_en_comprobante,motivo
+C16,2026-10-06,Nota de credito,FC01-000087,F001-004512,20999991011,PESQUERA COSTA AZUL SAC,insumos,Devolucion de 10 kg de pulpo en mal estado,500.0,90.0,590.0,20999990017,Devolucion por item
