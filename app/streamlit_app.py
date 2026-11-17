@@ -121,6 +121,8 @@ st.html(f"""
 .st-key-tu_negocio [data-testid="stMarkdownContainer"] p, .st-key-tu_negocio [data-testid="stCaptionContainer"],
 .st-key-tu_negocio [data-testid="stCaptionContainer"] p {{ color: #FFFFFF !important; }}
 .st-key-tu_negocio [data-testid="stCaptionContainer"] {{ opacity: .9; }}
+.st-key-tu_negocio [data-testid="stTooltipIcon"], .st-key-tu_negocio [data-testid="stTooltipIcon"] * {{
+  color: #FFFFFF !important; stroke: #FFFFFF; }}
 .st-key-casos_especiales {{ background: rgba(255,255,255,.10); border-radius: 12px; padding: .8rem 1rem; }}
 [class*="st-key-rec_t"] {{ border-radius: 10px; padding: .75rem 1rem; color: #0F172A;
   box-shadow: 0 2px 6px rgba(30, 58, 138, .10); }}
@@ -349,12 +351,27 @@ with st.container(key="tu_negocio"):
             vinc = st.toggle(f"¿Compartes más del {VINCULACION_MAX_CAPITAL:.0%} del capital con otra empresa?", value=False,
                              help="Es la vinculación económica (también cuenta un socio en común que controla las dos). "
                                   "Si existe, SUNAT suma los ingresos de ambas empresas para ver si pasas el tope.")
-            v2, v3 = st.columns(2)
-            pct_rubro = v2.slider("% de tus ingresos que viene del restaurante u hotel", 0, 100, 92) / 100
-            etiqueta_ing = ("Ingresos del año pasado sumando a la empresa vinculada (S/)" if vinc
-                            else "Ingresos del año pasado (S/)")
-            ingresos = v3.number_input(etiqueta_ing, min_value=0.0, value=624_000.0, step=10_000.0)
             tope = TOPE_TASA_ESPECIAL_UIT * UIT[anio]
+            st.markdown(
+                "**Requisitos para la tasa especial**",
+                help="La Ley 31556 solo da la tasa de 10,5 % a las MYPE que cumplen dos requisitos: que al menos el "
+                     f"{MINIMO_INGRESOS_RUBRO:.0%} de lo que venden sea del restaurante, hotel o alojamiento, y que lo "
+                     f"que vendieron el año anterior no pase de {TOPE_TASA_ESPECIAL_UIT:,} UIT. Estos datos solo sirven "
+                     "para revisar si tienes derecho a la tasa: no cambian el cálculo del IGV del mes.")
+            v2, v3 = st.columns(2)
+            pct_rubro = v2.slider(
+                f"¿Qué % de lo que vendes es del restaurante u hotel? (mínimo {MINIMO_INGRESOS_RUBRO:.0%})", 0, 100, 92,
+                help=f"Si menos del {MINIMO_INGRESOS_RUBRO:.0%} de tus ingresos viene del restaurante, hotel o "
+                     "alojamiento (por ejemplo, si vendes sobre todo abarrotes o catering), pierdes la tasa especial "
+                     "y tus ventas van al 18 %.") / 100
+            etiqueta_ing = (f"¿Cuánto vendieron en todo {anio - 1} tu negocio y la empresa vinculada? "
+                            f"(máximo {soles(tope)})" if vinc
+                            else f"¿Cuánto vendiste en todo {anio - 1}? (máximo {soles(tope)})")
+            ingresos = v3.number_input(
+                etiqueta_ing, min_value=0.0, value=624_000.0, step=10_000.0,
+                help=f"Tus ingresos del año anterior completo, no los del mes. El tope es {TOPE_TASA_ESPECIAL_UIT:,} UIT "
+                     f"({soles(tope)}). Si compartes más del {VINCULACION_MAX_CAPITAL:.0%} del capital con otra "
+                     "empresa, SUNAT suma los ingresos de las dos.")
             checks = [
                 (ingresos <= tope, f"Ingresos hasta {TOPE_TASA_ESPECIAL_UIT:,} UIT ({soles(tope)})"
                  + (" sumando a la vinculada" if vinc else "")),
