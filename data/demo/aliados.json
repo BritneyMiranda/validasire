@@ -1,0 +1,25 @@
+{
+  "aviso": "Perfiles de ejemplo para la presentación: las personas, universidades, matrículas y contactos son ficticios. Las fotos son animales con terno.",
+  "aliados": [
+    {
+      "id": "hamster",
+      "foto": "hamster.jpg",
+      "nombre": "CPC Pedro Hámster",
+      "universidad": "Universidad Andina del Debe y el Haber",
+      "matricula": "N.° 00-DEMO-01",
+      "region": "Lima (atiende en línea a todo el país)",
+      "experiencia": "12 años con restaurantes y hoteles MYPE",
+      "especialidades": ["Recupera tu crédito", "Cierre anual", "Tasa especial de restaurantes"]
+    },
+    {
+      "id": "gato",
+      "foto": "gato.jpg",
+      "nombre": "CPC Rosa Michi",
+      "universidad": "Universidad Nacional del Balance Cuadrado",
+      "matricula": "N.° 00-DEMO-02",
+      "region": "Arequipa (en línea)",
+      "experiencia": "8 años con negocios en el RER y el Régimen MYPE Tributario",
+      "especialidades": ["Consejería", "Esquelas de SUNAT", "Liquidaciones de compra"]
+    }
+  ]
+}

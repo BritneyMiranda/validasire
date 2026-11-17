@@ -64,6 +64,7 @@ Con la tasa especial de restaurantes (8 % IGV + 2,5 % IPM = 10,5 % en 2026) y co
 3. Recibe **qué falta, qué sobra y qué hacer** en compras y en ventas, con el producto de cada comprobante, y el **IGV a pagar** con y sin la revisión, calculado con código determinista. La mascota, Don Cuy, le dice si puede aceptar la propuesta ("¡Cuy-dado perfecto!") o si debe revisarla primero ("¡Ojo con el SIRE!").
 4. En otra pestaña recibe un **diagnóstico del negocio**: cuánto IGV podría recuperar al mes y al año, en qué compras (boletas de empresas que deberían darle factura, hielo o bolsas sin comprobante), dónde **no** hay IGV que recuperar porque el producto fresco está exonerado (pero sí costo que sustentar para Renta), cuándo aplica la **liquidación de compra**, si sus **talonarios** sirven, qué requisitos debe cumplir un comprobante para dar crédito, y recomendaciones de orden priorizadas.
 5. En la pestaña **Para tu contador** descarga el expediente en **Excel** (con las fórmulas), la lista final de compras con crédito para complementar o reemplazar la propuesta, un resumen y un mensaje de WhatsApp para el dueño.
+6. En la pestaña **Contadores aliados** puede pedir *Recupera tu crédito*, *Cierre anual* o *Consejería* a un contador de la red (perfiles de ejemplo en el demo), y un contador puede postular para ser aliado. En la barra lateral están los planes y la prueba gratis.
 
 **Normativa al día.** Las tasas, la UIT y los topes viven en [data/normativa/parametros.json](data/normativa/parametros.json), con la fecha de la última revisión, que la app muestra ("Con información tributaria actualizada al 15/11/2026"). Cada lunes, un monitor ([scripts/monitor_normativa.py](scripts/monitor_normativa.py), en GitHub Actions) lee el índice oficial de Resoluciones de Superintendencia de SUNAT, filtra las normas nuevas sobre IGV, SIRE, comprobantes, liquidación de compra, etc., y abre un issue para revisarlas. **Ningún cambio de tasa se aplica solo:** una persona lee la norma, actualiza el JSON y los tests deben pasar. Si pasan más de 45 días sin revisión, la app lo advierte.
 
@@ -149,29 +150,50 @@ Sobre los 15 comprobantes del caso, OCR + reglas extrae **100 % de los campos** 
 
 ## 7. Modelo de negocio
 
-**Quién paga:** el contador o estudio contable que lleva varios restaurantes (canal principal) y, en segundo lugar, el dueño que lleva sus cuentas.
+**Tres públicos:** el dueño MYPE (con o sin contador), el contador independiente y el estudio contable. Dos fuentes de ingreso: **suscripciones** (la base recurrente) y **servicios de la red de contadores aliados** (comisión).
 
-| Plan | Para quién | Precio | Incluye |
+> Es el modelo **propuesto**: en el demo no hay registro, cuentas ni pagos. Los precios son referenciales. Como referencia de mercado, un contador cobra a una MYPE entre S/ 100 y S/ 500 al mes, y un paquete con la declaración anual cuesta entre S/ 400 y S/ 900 ([cuantomecuesta.com](https://cuantomecuesta.com/pe/contador-contabilidad/), [kom.pe](https://kom.pe/landing-page-contadores-peru/); sitios comerciales, por confirmar con contadores).
+
+### Suscripciones
+
+| Plan | Para quién | Precio | Cómo se verifica |
 |---|---|---|---|
-| **Dueño** | 1 restaurante | **S/ 39 al mes** | 1 RUC, hasta 100 comprobantes al mes |
-| **Contador** | Contador independiente | **S/ 199 al mes** | Hasta 20 RUC (≈ S/ 10 por cliente) |
-| **Estudio** | Estudio contable | **S/ 449 al mes** | Hasta 60 RUC, reporte por cliente |
-| **Pro** (servicio adicional) | Dueño que no tiene contador o quiere delegar | **S/ 59 por periodo** (referencial) | Un contador aliado prepara el archivo para complementar o reemplazar la propuesta. El dueño lo sube con su Clave SOL: ValidaSire nunca la pide. En el demo es solo un botón de interés: no cobra ni guarda datos. |
+| **Prueba gratis** | Todos | Un mes completo revisado | Solo vale si los comprobantes subidos están a nombre del RUC ingresado (la app ya lee el RUC del cliente en cada factura). Una vez por RUC y por correo o celular. |
+| **Dueño** | 1 negocio | **S/ 19 al mes** o S/ 190 al año | RUC activo en el padrón de SUNAT |
+| **Contador** | Contador independiente | **S/ 49 al mes** con 3 RUC + **S/ 8 por RUC adicional** (máximo S/ 249) | Colegiatura y DNI contra el padrón del Colegio de Contadores de su región (si no hay consulta en línea, validación manual al inicio) |
+| **Estudio** | Estudio contable | **Desde S/ 299 al mes**: varios usuarios, reportes por cliente, la app con su propia marca | RUC del estudio con actividad de contabilidad (CIIU 6920) |
+
+El dueño la usa una vez al mes y paga poco; el contador paga por lo que usa ("pagas por cada empresa que revisas") y le cobra a cada cliente mucho más de S/ 8. Los datos de registro (DNI, colegiatura, RUC) requieren consentimiento y política de privacidad (Ley 29733).
+
+### Red de contadores aliados
+
+ValidaSire conecta; **la asesoría la da un contador colegiado**. El cliente paga el servicio por la app y el contador recibe el **80 %** (ValidaSire, **20 %** de comisión). Los contadores postulan desde la app ("¿Eres contador? Únete a nuestros aliados"), sin pago mensual por aparecer.
+
+| Servicio | Qué incluye | Precio referencial | Para ValidaSire |
+|---|---|---|---|
+| **Recupera tu crédito** | Revisión de los últimos 12 meses: facturas y notas de crédito que no se anotaron | **15 % de lo recuperado**; si no se recupera nada, no se paga | 20 % de ese 15 % |
+| **Cierre anual** | 12 meses ya revisados, renta anual estimada, pagos a cuenta, saldo a favor y declaración anual | **S/ 290 por año** | S/ 58 |
+| **Consejería** (incluye esquelas de SUNAT) | Videollamada de 30 min; si llega una esquela, la app la explica en simple antes | **S/ 49 por consulta** o **S/ 79 al mes** (2 consultas + esquelas) | S/ 9.80 / S/ 15.80 al mes |
+
+**Siguiente paso, no oferta actual:** que el contador aliado emita cada mes las liquidaciones de compra a pescadores y productores sin RUC (requiere su acceso al SOL del cliente; ValidaSire nunca pide la Clave SOL).
+
+### Costos y margen
 
 **Costo por RUC al mes** (supuesto: 80 comprobantes al mes; tipo de cambio S/ 3.75 por US$):
 
-| Concepto | Cálculo | Soles |
+| Concepto | Con Claude Opus 5.5 | Con Claude Haiku 5.5 |
 |---|---|---|
-| Claude Opus 5.5 (verificación) | ~900 tokens de entrada × US$ 4/M + ~400 de salida × US$ 20/M ≈ US$ 0.012 por comprobante × 80 | ≈ 3.50 |
-| Servidor (OCR en CPU) | VM de 2 vCPU (~US$ 24 al mes) compartida entre ~300 RUC | ≈ 0.30 |
-| Pasarela de pago | ~4 % del precio (plan Dueño) | ≈ 1.56 |
-| **Total plan Dueño** | | **≈ 5.40** |
+| LLM (verificación de la lectura) | ≈ S/ 3.50 | ≈ S/ 0.10 |
+| Servidor (OCR en CPU, VM de ~US$ 24 al mes entre ~300 RUC) | ≈ S/ 0.30 | ≈ S/ 0.30 |
+| Pasarela de pago (~4 %) | S/ 0.76 (plan Dueño) | S/ 0.76 |
+| **Margen plan Dueño (S/ 19)** | **S/ 14.44 (76 %)** | **S/ 17.84 (94 %)** |
+| **Margen por RUC adicional del contador (S/ 8)** | S/ 3.88 (49 %) | S/ 7.28 (91 %) |
 
-- **Margen de contribución:** plan Dueño ≈ S/ 33.60 (86 %); plan Contador ≈ S/ 10 − S/ 4.20 = S/ 5.80 por RUC (58 %).
-- **Palanca de costo:** con Claude Haiku 5.5 (US$ 0.10/0.50 por millón) el LLM baja a ≈ S/ 0.10 por RUC y el plan Contador sube a ~90 % de margen. Lo cambiaremos cuando la evaluación muestre que mantiene la exactitud. La app ya registra los tokens usados por comprobante para medirlo con datos reales.
+- **Con estos precios, Haiku 5.5 debe ser el modelo de producción**, en cuanto la evaluación muestre que mantiene la exactitud (la app ya registra los tokens por comprobante para medirlo). Opus queda para los casos marcados "revisar".
 - **Sin API key**, el producto funciona con OCR + reglas a costo casi cero: es el plan de respaldo si sube el precio del LLM.
+- **Por validar con el contador entrevistado:** si aceptaría clientes referidos, si el 20 % le parece justo y cuánto cobra hoy por un cierre anual.
 
-**Qué sigue:** probar con el contador entrevistado con su propia propuesta del SIRE (anonimizada), leer el layout oficial de exportación del SIRE, leer el layout oficial del RVIE (hoy las boletas se agrupan por resumen diario), recibir las fotos directamente por WhatsApp (el canal que ya usan los dueños) y sumar otros casos especiales (IVAP del arroz pilado, Amazonía, exportadores).
+**Qué sigue:** probar con el contador entrevistado con su propia propuesta del SIRE (anonimizada), leer el layout oficial de exportación del SIRE y del RVIE (hoy las boletas se agrupan por resumen diario), recibir las fotos directamente por WhatsApp (el canal que ya usan los dueños) y sumar otros casos especiales (IVAP del arroz pilado, Amazonía, exportadores).
 
 ## 8. Herramientas del curso
 

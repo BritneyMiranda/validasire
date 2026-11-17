@@ -8,6 +8,7 @@ Correr:  streamlit run app/streamlit_app.py
 from __future__ import annotations
 
 import io
+import json
 import os
 import sys
 from pathlib import Path
@@ -146,6 +147,45 @@ def leer_csv(archivo) -> pd.DataFrame:
     return pd.read_csv(archivo, dtype=str, sep=None, engine="python")
 
 
+# ---------------------------------------------------------------- modelo de negocio (demo: no hay cuentas ni pagos)
+ALIADOS = json.loads((RAIZ / "data" / "demo" / "aliados.json").read_text(encoding="utf-8"))
+FOTOS_ALIADOS = RAIZ / "assets" / "aliados"
+AVISO_DEMO = "Demo: no hay registro ni pagos todavía, y no se guarda ningún dato."
+
+
+def mostrar_planes() -> None:
+    st.markdown("**Prueba gratis:** un mes completo revisado para tu RUC. Solo vale si tus comprobantes están a "
+                "nombre de ese RUC, y es una vez por RUC y por correo o celular.")
+    st.markdown(
+        "| Plan | Para quién | Precio |\n|---|---|---|\n"
+        "| **Dueño** | Tu negocio (1 RUC) | **S/ 19 al mes** o S/ 190 al año |\n"
+        "| **Contador** | Contador independiente, con colegiatura | **S/ 49 al mes** con 3 RUC + S/ 8 por RUC adicional (máximo S/ 249) |\n"
+        "| **Estudio** | Estudio contable (varios usuarios) | **Desde S/ 299 al mes**, con tu propia marca |")
+    st.caption("Al registrarte eliges: ¿eres dueño o contador? Al dueño le pedimos el RUC del negocio; al contador, "
+               "su colegiatura y DNI, que se verifican en el padrón del Colegio de Contadores. " + AVISO_DEMO)
+
+
+def mostrar_union(clave: str) -> None:
+    st.markdown("**¿Eres contador? Únete a nuestros aliados**\n\n"
+                "- **Qué ganas:** clientes MYPE que ya revisaron su SIRE con ValidaSire y necesitan ayuda: recuperar "
+                "crédito, cierre anual, consejería o esquelas de SUNAT.\n"
+                "- **Requisitos:** colegiatura vigente y DNI, que se verifican en el padrón del Colegio de Contadores.\n"
+                "- **Cómo cobramos:** el cliente paga el servicio por la app; tú recibes el **80 %** y ValidaSire se "
+                "queda con el **20 %** como comisión. Sin pago mensual por aparecer en la lista.")
+    if st.button("Postular (demo)", icon=":material/how_to_reg:", key=f"postular_{clave}", type="primary"):
+        st.toast("¡Gracias por tu interés! " + AVISO_DEMO, icon=":material/info:")
+
+
+def avatar(aliado: dict) -> None:
+    foto = FOTOS_ALIADOS / aliado.get("foto", "")
+    if aliado.get("foto") and foto.exists():
+        st.image(str(foto), width=110)
+    else:  # sin foto: iniciales
+        iniciales = "".join(p[0] for p in aliado["nombre"].replace("CPC ", "").split()[:2])
+        st.html(f'<div style="width:96px;height:96px;border-radius:50%;background:#1D4ED8;color:#fff;'
+                f'display:flex;align-items:center;justify-content:center;font-size:2rem;font-weight:700">{iniciales}</div>')
+
+
 # ---------------------------------------------------------------- estado
 ss = st.session_state
 ss.setdefault("imagenes", {})        # nombre -> bytes
@@ -204,6 +244,13 @@ with st.sidebar:
         st.caption(f"Modelo: `{modelo_claude()}`")
     rapido = st.toggle("Modo rápido (resultados guardados)", value=False,
                        help="Usa la lectura ya calculada del caso de ejemplo, por si el servidor está lento.")
+
+    st.divider()
+    st.subheader(":material/sell: Planes")
+    with st.popover("Ver planes y prueba gratis", icon=":material/workspace_premium:", width="stretch"):
+        mostrar_planes()
+    with st.popover("¿Eres contador? Únete a nuestros aliados", icon=":material/group_add:", width="stretch"):
+        mostrar_union(clave="sidebar")
 
 if st.query_params.get("demo") == "1" and not ss.extracciones and not ss.es_caso:
     cargar_caso(rapido=True)
@@ -269,8 +316,10 @@ with st.container(key="tu_negocio"):
 periodo = f"{anio}-{MESES.index(mes) + 1:02d}"
 st.write("")
 
-t_rev, t_diag, t_cont = st.tabs([":material/fact_check: Revisión del SIRE", ":material/insights: Diagnóstico del negocio",
-                                 ":material/folder_shared: Para tu contador"])
+t_rev, t_diag, t_cont, t_ali = st.tabs([":material/fact_check: Revisión del SIRE",
+                                        ":material/insights: Diagnóstico del negocio",
+                                        ":material/folder_shared: Para tu contador",
+                                        ":material/handshake: Contadores aliados"])
 
 compras = con = res = con_ventas = diag = None
 
@@ -550,15 +599,14 @@ with t_rev:
             st.caption(f"{'Pago a cuenta de renta (RMT)' if regimen_renta == 'RMT' else 'Cuota de renta (RER)'}: "
                        f"{soles(res.pago_a_cuenta_renta)} ({res.tasa_pago_a_cuenta:.1%} de tus ventas).")
 
-            # --- servicio de pago
+            # --- puente a los servicios de la red de contadores
             with st.container(key="premium"):
-                p1, p2 = st.columns([4, 1], vertical_alignment="center")
-                p1.markdown("**:material/workspace_premium: ¿Quieres que lo dejemos listo por ti? · ValidaSire Pro**  \n"
-                            "Si decides **complementar o reemplazar** la propuesta, sube tus registros de compras y ventas y "
-                            "un contador aliado te prepara el archivo para importarlo al SIRE, revisado y con sustento. "
-                            "Tú lo subes con tu Clave SOL: **nunca te la pedimos**. Referencial: S/ 59 por periodo.")
-                if p2.button("Me interesa", icon=":material/arrow_forward:", type="primary", width="stretch"):
-                    st.toast("¡Gracias! Este es un demo: no se cobra ni se guarda ningún dato.", icon=":material/info:")
+                gancho = (f"Este mes encontramos **{soles(res.credito_recuperado)}** de IGV que SUNAT no tenía. "
+                          "¿Y los 11 meses anteriores? El crédito se puede anotar hasta 12 meses después. "
+                          if res.credito_recuperado else "")
+                st.markdown("**:material/handshake: ¿Quieres que un contador te ayude?**  \n" + gancho +
+                            "En la pestaña **Contadores aliados** puedes pedir *Recupera tu crédito* (pagas solo si "
+                            "recuperas), el *Cierre anual* o una *Consejería*, también si te llegó una esquela de SUNAT.")
 
 # ================================================================ pestaña 2: diagnóstico
 with t_diag:
@@ -641,6 +689,53 @@ with t_cont:
         with st.container(border=True):
             st.markdown("**:material/chat: Mensaje para el dueño (WhatsApp)**  \nSi eres el contador, cópialo y envíalo.")
             st.code(mensaje_dueno(res, con), language=None, wrap_lines=True)
+
+# ================================================================ pestaña 4: contadores aliados
+with t_ali:
+    st.markdown("La app revisa tus números; **las decisiones las toma un contador colegiado**. ValidaSire te conecta "
+                "con contadores aliados para estos servicios:")
+    SERVICIOS = [
+        (":material/savings:", "Recupera tu crédito",
+         "Revisamos tus últimos 12 meses (el crédito se puede anotar hasta 12 meses después) y encontramos facturas y "
+         "notas de crédito que faltaron. El contador hace las correcciones.",
+         "**15 % de lo que recuperes.** Si no recuperas nada, no pagas."),
+        (":material/event_available:","Cierre anual",
+         "Juntamos tus 12 meses ya revisados, estimamos la renta del año, revisamos pagos a cuenta y saldo a favor, y "
+         "el contador prepara tu declaración anual (marzo-abril).",
+         "**S/ 290 por año** (pago único). Referencia de mercado: S/ 400 a S/ 900."),
+        (":material/support_agent:", "Consejería (incluye esquelas de SUNAT)",
+         "Videollamada con un contador: ¿RER o RMT?, ¿mi talonario sirve?, ¿qué hago con esta carta de SUNAT? Si te "
+         "llega una esquela, la subes y te la explicamos en simple antes de la llamada.",
+         "**S/ 49 por consulta** de 30 min, o **S/ 79 al mes** con 2 consultas + ayuda con esquelas."),
+    ]
+    cols = st.columns(3)
+    for i, (icono, titulo, texto, precio) in enumerate(SERVICIOS):
+        with cols[i].container(key=f"rec_t{i}_serv", height="stretch"):
+            st.markdown(f"{icono} **{titulo}**")
+            st.caption(texto)
+            st.markdown(precio)
+    st.caption("Precios referenciales de la propuesta. Siguiente paso: que el contador aliado emita cada mes tus "
+               "liquidaciones de compra a pescadores y productores sin RUC. " + AVISO_DEMO)
+
+    with st.expander(f"Ver contadores aliados ({len(ALIADOS['aliados'])})", icon=":material/groups:"):
+        st.warning(ALIADOS["aviso"], icon=":material/info:")
+        for a in ALIADOS["aliados"]:
+            with st.container(border=True):
+                f1, f2, f3 = st.columns([1, 4, 1.4], vertical_alignment="center")
+                with f1:
+                    avatar(a)
+                f2.markdown(f"**{a['nombre']}** · :blue-badge[Perfil de ejemplo]  \n"
+                            f"{a['experiencia']}  \n"
+                            f":material/school: {a['universidad']} · Matrícula {a['matricula']}  \n"
+                            f":material/location_on: {a['region']}")
+                f2.markdown(" ".join(f":blue-badge[{e}]" for e in a["especialidades"]))
+                if f3.button("Contactar (demo)", key=f"contacto_{a['id']}", icon=":material/call:",
+                             width="stretch"):
+                    st.toast(f"En la versión real, {a['nombre']} te escribiría por la app. " + AVISO_DEMO,
+                             icon=":material/info:")
+
+    with st.container(border=True):
+        mostrar_union(clave="pestana")
 
 st.divider()
 st.caption("Datos de ejemplo 100 % ficticios. ValidaSire es un proyecto independiente: no es un producto de SUNAT ni "
