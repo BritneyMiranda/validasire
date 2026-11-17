@@ -16,10 +16,9 @@ Hacemos que los dueños de restaurantes MYPE revisen su IGV del mes en 5 minutos
 
 ## 2. Founder
 
-<img src="docs/founder.jpg" alt="Foto de la founder" width="120" align="left" style="margin-right:16px">
+**Britney Daily Miranda Gutiérrez** · Estudiante de Economía de 8.° ciclo en la Universidad del Pacífico (curso Data Science con Python 2026-II).
 
-**Britney Daily Miranda Gutiérrez** · Universidad del Pacífico, Data Science con Python 2026-II.
-_[Una línea sobre ti: carrera y tu vínculo con el problema, p. ej. el negocio de tu familia o tus prácticas.]_
+ValidaSIRE responde a las necesidades de los pequeños emprendedores con los que he estado en contacto a lo largo de mi vida. Me interesan la tesorería y la gestión financiera de empresas, y quiero que las personas con menos acceso a asesoría tengan herramientas que les sirvan en el día a día de sus negocios, sobre todo frente a la información tributaria de SUNAT, que es densa, técnica y cambia seguido. Por eso la app traduce esa información a acciones concretas: qué revisar, qué pedir al proveedor y cuánto IGV pagar.
 
 Cómo cubro cada frente con agentes de IA:
 
@@ -28,30 +27,36 @@ Cómo cubro cada frente con agentes de IA:
 - **Diseño:** Streamlit con componentes nativos y un tema propio; las capturas se generan con un script.
 - **Ventas:** el canal son los contadores que llevan varios restaurantes. El mensaje de WhatsApp para el dueño y el reporte para el contador salen de la app.
 
-<br clear="left">
-
 ## 3. Problema
 
 **Quién lo sufre.** Los restaurantes MYPE de Lima (cevicherías, menús, pollerías) en el Régimen MYPE Tributario o el RER, con 3 a 15 trabajadores, que venden con boleta (POS, Yape, Plin) y compran a mayoristas y distribuidoras. Y sus contadores externos, que llevan entre 20 y 60 negocios así.
 
-**Qué pasa.** Desde agosto de 2024 el SIRE es obligatorio para el RMT y el RER: cada mes SUNAT arma una **propuesta** del Registro de Compras (RCE) con los comprobantes electrónicos que conoce, y el contribuyente puede aceptarla, complementarla o reemplazarla. Lo más fácil es aceptarla sin revisar, y ahí aparecen dos errores opuestos:
+**Qué pasa.** En el SIRE, cada mes SUNAT arma una **propuesta** del Registro de Compras (RCE) y del de Ventas (RVIE) con los comprobantes electrónicos que conoce, y el contribuyente puede aceptarla, complementarla o reemplazarla. Esto es lo que dicen la prensa y los estudios:
 
-| Error | Ejemplo | Costo |
-|---|---|---|
-| **Falta** una compra real | Una factura física de contingencia del pescado, que SUNAT no tiene | Se pierde crédito fiscal: se paga IGV de más |
-| **Sobra** una compra ajena | El televisor que el dueño compró con el RUC del negocio | Crédito indebido: reparo, intereses y multa si hay fiscalización |
+- **El SIRE ya es masivo.** Lo usan más de 1.4 millones de contribuyentes, que han generado más de 64 millones de registros de ventas y de compras ([El Peruano, 01/07/2026](https://elperuano.pe/noticia/299237-sunat-extiende-plazo-del-sire-para-empresas-con-ingresos-superiores-a-2300-uit)).
+- **La adaptación ha costado.** SUNAT tuvo que dar más plazo para subsanar sin multa las infracciones del SIRE de julio a diciembre de 2025 ([La República, 31/07/2025](https://larepublica.pe/sociedad/2025/07/31/sunat-amplia-hasta-enero-2026-el-plazo-para-corregir-errores-en-el-sire-evita-sanciones-asi-evatia-1304790)).
+- **El sistema tributario de las MYPE es complejo.** Conviven cuatro regímenes (Nuevo RUS, RER, RMT y General), y ComexPerú advierte que reformarlo sin simplificar es "ampliar un sistema que ya es complejo" ([ComexPerú, Semanario 1314, 07/08/2026](https://www.comexperu.org.pe/articulo/hacia-una-reforma-tributaria-con-impacto)).
+- **Cumplir es la excepción.** El 86.8 % de las MYPE opera en la informalidad y "8 de cada 10 mypes no cumplen con normas laborales ni tributarias", según ComexPerú ([Canal N](https://canaln.pe/actualidad/comexperu-informalidad-mypes-alcanza-868-2024-n485354)).
+- **Los restaurantes están en la mira.** SUNAT "viene notificando esquelas de citación" a restaurantes y hoteles MYPE con vinculación económica que usaron la tasa especial, porque considera que les corresponde el 18 % ([Gestión, columna de Francisco Pantigoso, 14/09/2026](https://gestion.pe/opinion/igv-para-restaurantes-y-hoteles-bajo-lupa-noticia/)).
 
-Con la tasa especial de restaurantes (8 % IGV + 2,5 % IPM = 10,5 % en 2026) y compras al 18 %, **el crédito fiscal pesa casi tanto como el débito**: en nuestro caso de ejemplo, S/ 3,985 de crédito contra S/ 5,460 de débito. Un error en compras mueve mucho el IGV a pagar.
-
-**Cuánto cuesta.** En el caso de ejemplo (ficticio pero con montos típicos), aceptar la propuesta lleva a pagar **S/ 1,834.80 en vez de S/ 1,474.80** (S/ 360 de más en un solo mes) y, además, a declarar S/ 378 de crédito indebido. Los dos errores casi se compensan, así que el total "parece razonable": solo una revisión línea por línea los encuentra. A eso se suma el riesgo de la tasa especial: SUNAT está enviando esquelas a restaurantes por vinculación económica, y perder el beneficio obliga a reliquidar a 18 %.
-
-**Cómo lo resuelven hoy.** El dueño junta las facturas en un sobre o las manda por WhatsApp al contador. El contador descarga la propuesta en Excel y, si tiene tiempo, compara a mano; si no, acepta. Nadie revisa si cada compra es del negocio, y el dueño no sabe qué compras le sirven para descontar IGV.
-
-**Evidencia.** 3 conversaciones en [docs/research/](docs/research/) (síntesis en [sintesis.md](docs/research/sintesis.md)):
+**Lo confirmamos en las entrevistas** (3 conversaciones en [docs/research/](docs/research/), síntesis en [sintesis.md](docs/research/sintesis.md)):
 
 - **Dueña de cevichería (RMT):** el contador acepta la propuesta "casi siempre"; una factura grande de pescado no apareció y nunca supo por qué. Compra en el mercado con boleta o sin nada y no sabe cuánto deja de recuperar. *"Yo recibo la factura, la guardo y rezo para que salga bien."*
 - **Dueño de pollería (RER):** manda fotos borrosas por WhatsApp a fin de mes, tuvo una factura con el RUC mal digitado, tiene talonarios que no sabe si sirven y compra carbón y bolsas sin comprobante. *"A veces pago por algo que no sé si me sirve."*
 - **Contador con ~25 MYPE:** compara la propuesta a mano en Excel; ve faltantes por RUC errado, comprobantes de contingencia fuera de la propuesta y clientes que piden "meter" compras de la casa. *"Que lea los papeles, pero el impuesto lo calculo yo."*
+
+**Lo más fácil es aceptarla sin revisar, y ahí aparecen dos errores opuestos que la app puede solucionar:**
+
+| Error | Ejemplo | Costo | Qué hace ValidaSIRE |
+|---|---|---|---|
+| **Falta** una compra real | Una factura física de contingencia del pescado, que SUNAT no tiene | Se pierde crédito fiscal: se paga IGV de más | La lee de la foto y la marca "SUNAT no la tiene" |
+| **Sobra** una compra ajena | El televisor que el dueño compró con el RUC del negocio | Crédito indebido: reparo, intereses y multa si hay fiscalización | La marca "No subiste su comprobante" para que se excluya |
+
+Con la tasa especial de restaurantes (8 % IGV + 2,5 % IPM = 10,5 % en 2026) y compras al 18 %, **el crédito fiscal pesa casi tanto como el débito**: en nuestro caso de ejemplo, S/ 3,985 de crédito contra S/ 5,460 de débito. Un error en compras mueve mucho el IGV a pagar.
+
+**Cuánto cuesta.** En el caso de ejemplo (ficticio pero con montos típicos), aceptar la propuesta lleva a pagar **S/ 1,834.80 en vez de S/ 1,474.80** (S/ 360 de más en un solo mes) y, además, a declarar S/ 378 de crédito indebido. Los dos errores casi se compensan, así que el total "parece razonable": solo una revisión línea por línea los encuentra. A eso se suma el riesgo de la tasa especial: con las esquelas por vinculación económica, perder el beneficio obliga a reliquidar al 18 %, y la app verifica los requisitos antes de calcular.
+
+**Cómo lo resuelven hoy.** El dueño junta las facturas en un sobre o las manda por WhatsApp al contador. El contador descarga la propuesta en Excel y, si tiene tiempo, compara a mano; si no, acepta. Nadie revisa si cada compra es del negocio, y el dueño no sabe qué compras le sirven para descontar IGV.
 
 ## 4. Solución e insight
 
@@ -77,7 +82,7 @@ Con la tasa especial de restaurantes (8 % IGV + 2,5 % IPM = 10,5 % en 2026) y co
 
 ## 5. Why now
 
-- **El SIRE es obligatorio para MYPE desde agosto de 2024**, y para los nuevos negocios desde el primer día. Hace tres años no existía una "propuesta" contra la cual conciliar.
+- **El SIRE ya es obligatorio para las MYPE del RER y del RMT** y lo usan más de 1.4 millones de contribuyentes ([El Peruano, 2026](https://elperuano.pe/noticia/299237-sunat-extiende-plazo-del-sire-para-empresas-con-ingresos-superiores-a-2300-uit)). Hace pocos años no existía una "propuesta" contra la cual conciliar.
 - **El OCR ya corre gratis en CPU.** Los modelos PP-OCR (PaddleOCR) exportados a ONNX pesan ~32 MB y leen un comprobante en ~1,5 s en un servidor gratuito, sin GPU.
 - **Los LLM con salidas estructuradas** devuelven un JSON validado contra un esquema (Pydantic) por menos de un centavo de dólar por comprobante.
 - **La tasa especial cambia en 2027** (de 10,5 % a 15 %) y el IPM sube cada año hasta 2029: los restaurantes necesitan recalcular con parámetros, no con la plantilla de Excel del año pasado.
@@ -152,7 +157,19 @@ Sobre los 15 comprobantes del caso, OCR + reglas extrae **100 % de los campos** 
 
 **Tres públicos:** el dueño MYPE (con o sin contador), el contador independiente y el estudio contable. Dos fuentes de ingreso: **suscripciones** (la base recurrente) y **servicios de la red de contadores aliados** (comisión).
 
-> Es el modelo **propuesto**: en el demo no hay registro, cuentas ni pagos. Los precios son referenciales. Como referencia de mercado, un contador cobra a una MYPE entre S/ 100 y S/ 500 al mes, y un paquete con la declaración anual cuesta entre S/ 400 y S/ 900 ([cuantomecuesta.com](https://cuantomecuesta.com/pe/contador-contabilidad/), [kom.pe](https://kom.pe/landing-page-contadores-peru/); sitios comerciales, por confirmar con contadores).
+> Es el modelo **propuesto**: en el demo no hay registro, cuentas ni pagos. Los precios son referenciales y salen de las referencias de mercado de la tabla siguiente.
+
+**Precios de referencia del mercado** (consultados en noviembre de 2026; son sitios comerciales y precios orientativos, por confirmar con contadores):
+
+| Qué | Precio | Fuente |
+|---|---|---|
+| Contabilidad mensual de una MYPE en Lima | S/ 400 a S/ 900 al mes (promedio ~S/ 500) | [Cuánto Me Cuesta: contador en Perú](https://cuantomecuesta.com/pe/contador-contabilidad/) (precios de abril de 2026) |
+| Contabilidad mensual por régimen, en Lima | RMT: S/ 300 a S/ 600 · RER: S/ 150 a S/ 300 al mes | [KOM: contadores en Perú](https://kom.pe/landing-page-contadores-peru/) (actualizado el 25/10/2026) |
+| Consultoría contable o tributaria | S/ 80 a S/ 200 por hora | [Cuánto Me Cuesta](https://cuantomecuesta.com/pe/contador-contabilidad/) |
+| Asesoría tributaria por videollamada | S/ 60 (15 min), S/ 110 (30 min), S/ 200 (60 min) | [B&B Abogados y Contadores](https://bybconsultores.pe/asesoria-tributaria-zoom/) |
+| Declaración anual de renta (persona natural) | S/ 80 a S/ 400 | [Cuánto Me Cuesta](https://cuantomecuesta.com/pe/contador-contabilidad/) |
+
+Cómo se fijaron nuestros precios: el plan **Dueño** (S/ 19) es menos del 5 % de lo que una MYPE paga al mes por su contabilidad; la **Consejería** de 30 min (S/ 49) cuesta menos de la mitad que la asesoría de 30 min publicada (S/ 110); y el **Cierre anual** (S/ 290) es una estimación propia, porque no encontramos un precio público de la declaración anual de una MYPE (la de persona natural cuesta hasta S/ 400 y una MYPE es más compleja).
 
 ### Suscripciones
 

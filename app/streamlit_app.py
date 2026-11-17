@@ -785,7 +785,7 @@ with t_ali:
         (":material/event_available:","Cierre anual",
          "Juntamos tus 12 meses ya revisados, estimamos la renta del año, revisamos pagos a cuenta y saldo a favor, y "
          "el contador prepara tu declaración anual (marzo-abril).",
-         "**S/ 290 por año** (pago único). Referencia de mercado: S/ 400 a S/ 900."),
+         "**S/ 290 por año** (pago único)."),
         (":material/support_agent:", "Consejería (incluye esquelas de SUNAT)",
          "Videollamada con un contador: ¿RER o RMT?, ¿mi talonario sirve?, ¿qué hago con esta carta de SUNAT? Si te "
          "llega una esquela, la subes y te la explicamos en simple antes de la llamada.",
